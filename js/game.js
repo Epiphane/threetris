@@ -22,6 +22,8 @@ Game = (function() {
       this.coreRotation = 0;
       this.rotationSpeed = 10;
 
+      this.fallDelay = 70;
+
       // Base for the game
       this.floor = new Cube.Group();
       this.floor.position.y = -5;
@@ -78,14 +80,21 @@ Game = (function() {
 
             if (solid) {
                this.floor.removeRow(y);
-               console.log('removing ' + y);
+
+               if (this.fallDelay > 6) {
+                  this.fallDelay -= 2;
+               }
             }
          }
 
          this.coreRotation += Math.PI / 2;
 
          this.newPiece();
+
+         return true;
       }
+
+      return false;
    };
 
    Game.prototype.move = function(dx) {
@@ -93,6 +102,14 @@ Game = (function() {
 
       if (this.newThing.intersects(this.floor, this.coreRotation)) {
          this.newThing.position.x -= dx;
+      }
+
+      if (this.newThing.position.x + this.newThing.min.x < -5) {
+         this.newThing.position.x = -5 - this.newThing.min.x; 
+      }
+
+      if (this.newThing.position.x + this.newThing.max.x > 5) {
+         this.newThing.position.x = 5 - this.newThing.max.x; 
       }
    }
 
@@ -119,7 +136,7 @@ Game = (function() {
       if (inputDelay[key]-- <= 0) {
          if (Input.getKey(key)) {
             ifPressed.call(this);
-            inputDelay[key] = 15;
+            inputDelay[key] = 12;
          }
       }
       if (!Input.getKey(key)) {
@@ -128,9 +145,10 @@ Game = (function() {
    };
 
    var paused = false, pPress = false;
+   var sPress = false;
    var fallDelay = 0;
    Game.prototype.update = function(dt) {
-      if (Input.getKey('SPACE')) {
+      if (Input.getKey('ESC')) {
          if (!pPress) paused = !paused;
 
          if (paused) {
@@ -174,18 +192,23 @@ Game = (function() {
 
       this.testInput('LEFT', this.moveLeft);
       this.testInput('RIGHT', this.moveRight);
-      this.testInput('A', this.rotateLeft);
-      this.testInput('D', this.rotateRight);
+      this.testInput('UP', this.rotateLeft);
 
       if (Input.getKey('DOWN')) {
          fallDelay -= 5;
       }
 
       if (fallDelay-- <= 0) {
-         fallDelay = 50;
+         fallDelay = this.fallDelay;
          
          this.fall();
       }
+
+      if (Input.getKey('SPACE') && !sPress) {
+         while (!this.fall())
+            ;
+      }
+      sPress = Input.getKey('SPACE');
    };
 
    Game.prototype.render = function(renderer) {
