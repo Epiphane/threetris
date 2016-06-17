@@ -64,7 +64,24 @@ Game = (function() {
       if (this.newThing.intersects(this.floor, this.coreRotation)) {
          this.newThing.position.y ++;
 
+         var y_min = this.newThing.position.y + this.newThing.min.y;
+         var y_max = this.newThing.position.y + this.newThing.max.y;
          this.floor.absorb(this.newThing, this.coreRotation);
+
+         // Check each level
+         for (var y = y_min; y <= y_max; y ++) {
+            var solid = true;
+
+            for (var x = -5; x <= 5 && solid; x ++) {
+               solid = this.floor.hasCubeAt(x, y, this.coreRotation);
+            }
+
+            if (solid) {
+               this.floor.removeRow(y);
+               console.log('removing ' + y);
+            }
+         }
+
          this.coreRotation += Math.PI / 2;
 
          this.newPiece();
@@ -105,6 +122,9 @@ Game = (function() {
             inputDelay[key] = 15;
          }
       }
+      if (!Input.getKey(key)) {
+         inputDelay[key] = 0;
+      }
    };
 
    var paused = false, pPress = false;
@@ -112,6 +132,19 @@ Game = (function() {
    Game.prototype.update = function(dt) {
       if (Input.getKey('SPACE')) {
          if (!pPress) paused = !paused;
+
+         if (paused) {
+            this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            this.camera.position.y = 5;
+            this.camera.position.z = 20;
+            this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+         }
+         else {
+            this.camera = new THREE.OrthographicCamera(-window.innerWidth / 80, window.innerWidth / 80, window.innerHeight / 80, -window.innerHeight / 80, -500, 1000);
+            this.camera.position.y = 0;
+            this.camera.position.z = 20;
+            this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+         }
 
          pPress = true;
       }

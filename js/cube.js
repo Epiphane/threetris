@@ -38,18 +38,20 @@ var Cube = (function() {
          var block = this.children[i];
          block.position.applyAxisAngle(axis, degree).round();
 
-         this.mapCube(block.position);
+         this.mapCube(block);
       }
    };
 
-   Cube.Group.prototype.mapCube = function(pos) {
-      if (!this.cubes[pos.x])
-         this.cubes[pos.x] = [];
+   Cube.Group.prototype.mapCube = function(block) {
+      var pos = block.position;
 
-      if (!this.cubes[pos.x][pos.y])
-         this.cubes[pos.x][pos.y] = [];
+      if (!this.cubes[pos.y])
+         this.cubes[pos.y] = [];
+
+      if (!this.cubes[pos.y][pos.x])
+         this.cubes[pos.y][pos.x] = [];
    
-      this.cubes[pos.x][pos.y][pos.z] = true;
+      this.cubes[pos.y][pos.x][pos.z] = block;
 
       if (pos.x < this.min.x) this.min.x = pos.x;
       if (pos.y < this.min.y) this.min.y = pos.y;
@@ -64,20 +66,28 @@ var Cube = (function() {
 
       THREE.Object3D.prototype.add.call(this, cube);
 
-      this.mapCube(new THREE.Vector3(x, y, z));
-   };
-
-   Cube.Group.prototype.hasCubeAt = function(x, y, z) {
-      x -= this.position.x;
-      y -= this.position.y;
-      z -= this.position.z;
-
-      if (!this.cubes[x]) return false;
-      if (!this.cubes[x][y]) return false;
-      return !!this.cubes[x][y][z];
+      this.mapCube(cube);
    };
 
    var UP = new THREE.Vector3(0, -1, 0);
+
+   Cube.Group.prototype.hasCubeAt = function(x, y, rotation) {
+      var pos = new THREE.Vector3(parseInt(x), parseInt(y), 5);
+          pos.applyAxisAngle(UP, rotation).round().sub(this.position);
+      var dpos = new THREE.Vector3(0, 0, -1).applyAxisAngle(UP, rotation).round();
+
+      for (var i = 0; i <= 11; i ++) {
+         if (!!this.cubes[pos.y] &&
+             !!this.cubes[pos.y][pos.x] &&
+             !!this.cubes[pos.y][pos.x][pos.z]) {
+            return true;
+         }
+
+         pos.add(dpos);
+      }
+
+      return false;
+   };
 
    Cube.Group.prototype.absorb = function(other, otherRotation) {
       while (other.children.length > 0) {
@@ -87,12 +97,34 @@ var Cube = (function() {
          block.position.sub(this.position);
 
          this.add(block);
-         this.mapCube(block.position);
+         this.mapCube(block);
       }
 
       other.min = new THREE.Vector3(0, 0, 0);
       other.max = new THREE.Vector3(0, 0, 0);
       other.cubes = [];
+   };
+
+   Cube.Group.prototype.removeRow = function(y) {
+      y -= this.position.y;
+
+      this.cubes.splice(y, 1);
+
+      var toRemove = [];
+      for (var i = 0; i < this.children.length; i ++) {
+         var block = this.children[i];
+
+         if (block.position.y === y) {
+            toRemove.push(block);
+         }
+         else if (block.position.y > y) {
+            block.position.y --;
+         }
+      }
+
+      while (toRemove.length) {
+         this.remove(toRemove.shift());
+      }
    };
 
    Cube.Group.prototype.intersects = function(other, otherRotation) {
@@ -119,15 +151,10 @@ var Cube = (function() {
          return false;
       }
 
-      for (var x in this.cubes) {
-         for (var y in this.cubes[x]) {
-            for (var z = 0; z > -11; z --) {
-               var pos = new THREE.Vector3(parseInt(x), parseInt(y), parseInt(z));
-                   pos.add(this.position).applyAxisAngle(UP, otherRotation).round();
-
-               if (other.hasCubeAt(pos.x, pos.y, pos.z)) {
-                  return true;
-               }
+      for (var y in this.cubes) {
+         for (var x in this.cubes[y]) {
+            if (other.hasCubeAt(parseInt(x) + this.position.x, parseInt(y) + this.position.y, otherRotation)) {
+               return true;
             }
          }
       }
