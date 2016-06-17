@@ -89,6 +89,10 @@ var Cube = (function() {
          this.add(block);
          this.mapCube(block.position);
       }
+
+      other.min = new THREE.Vector3(0, 0, 0);
+      other.max = new THREE.Vector3(0, 0, 0);
+      other.cubes = [];
    };
 
    Cube.Group.prototype.intersects = function(other, otherRotation) {
