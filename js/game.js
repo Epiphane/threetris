@@ -82,7 +82,7 @@ Game = (function() {
                this.floor.removeRow(y);
 
                if (this.fallDelay > 6) {
-                  this.fallDelay -= 2;
+                  this.fallDelay = Math.floor(this.fallDelay * 6 / 7);
                }
             }
          }
