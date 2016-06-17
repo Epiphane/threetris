@@ -37,11 +37,7 @@ Game = (function() {
       this.newThing = new Cube.Group(0xff0000);
       this.scene.add(this.newThing);
 
-      this.currentPiece = 0;
-      this.pieces = [
-         [[0, 0, 0],[]] 
-      ];
-
+      this.pieceFactory = new PieceFactory();
       this.newPiece();
 
       // Camera
@@ -56,10 +52,7 @@ Game = (function() {
    Game.prototype.newPiece = function() {
       this.newThing.setColor(new THREE.Color(Math.random() * 3 / 4 + 0.25, Math.random() * 3 / 4 + 0.25, Math.random() * 3 / 4 + 0.25));
 
-      this.newThing.addCube(0, 0, 0);
-      this.newThing.addCube(1, 0, 0);
-      this.newThing.addCube(1, 1, 0);
-      this.newThing.addCube(-1, 0, 0);
+      this.pieceFactory.createRandom(this.newThing);
 
       this.newThing.position.x = 0;
       this.newThing.position.y = 8;
