@@ -22,7 +22,15 @@ Game = (function() {
       this.coreRotation = 0;
       this.rotationSpeed = 10;
 
+      this.fallTimer = 0;
       this.fallDelay = 70;
+
+      this.level = 1;
+      this.score = 0;
+      this.linesRemoved = 0;
+
+      this.levelDiv = document.getElementById('level');
+      this.scoreDiv = document.getElementById('score');
 
       // Base for the game
       this.floor = new Cube.Group();
@@ -51,6 +59,15 @@ Game = (function() {
       this.camera.lookAt(new THREE.Vector3(0, 0, 0));
    };
 
+   Game.prototype.nextLevel = function() {
+      this.levelDiv.innerHTML = '' + (++this.level);
+   };
+
+   Game.prototype.addScore = function(score) {
+      this.score += score;
+      this.scoreDiv.innerHTML = '' + this.score;
+   };
+
    Game.prototype.newPiece = function() {
       this.newThing.setColor(new THREE.Color(Math.random() * 3 / 4 + 0.25, Math.random() * 3 / 4 + 0.25, Math.random() * 3 / 4 + 0.25));
 
@@ -69,6 +86,8 @@ Game = (function() {
          var y_min = this.newThing.position.y + this.newThing.min.y;
          var y_max = this.newThing.position.y + this.newThing.max.y;
          this.floor.absorb(this.newThing, this.coreRotation);
+         
+         var linesRemoved = 0;
 
          // Check each level
          for (var y = y_min; y <= y_max; y ++) {
@@ -79,13 +98,20 @@ Game = (function() {
             }
 
             if (solid) {
-               this.floor.removeRow(y);
+               linesRemoved ++;
+               this.floor.removeRow(y--);
 
-               if (this.fallDelay > 6) {
-                  this.fallDelay = Math.floor(this.fallDelay * 6 / 7);
+               if ((++this.linesRemoved) % 6 === 0) {
+                  this.nextLevel();
+
+                  if (this.fallDelay > 6) {
+                     this.fallDelay = Math.floor(this.fallDelay * 6 / 7);
+                  }
                }
             }
          }
+
+         this.addScore(Math.ceil(Math.pow(linesRemoved, 3/2)) * 10);
 
          this.coreRotation += Math.PI / 2;
 
@@ -97,8 +123,27 @@ Game = (function() {
       return false;
    };
 
+   Game.prototype.wouldCollide = function() {
+      this.newThing.position.y ++;
+
+      var collide = this.newThing.intersects(this.floor, this.coreRotation);
+
+      this.newThing.position.y --;
+
+      return collide;
+   };
+
+   var delayAddOnInput = 4;
+
    Game.prototype.move = function(dx) {
       this.newThing.position.x += dx;
+
+      if (this.wouldCollide()) {
+         this.fallTimer = this.fallDelay;
+      }
+      else {
+         this.fallTimer += delayAddOnInput;
+      }
 
       if (this.newThing.intersects(this.floor, this.coreRotation)) {
          this.newThing.position.x -= dx;
@@ -119,14 +164,28 @@ Game = (function() {
 
    Game.prototype.moveRight = function() {
       this.move(1);
+
+      this.fallTimer += delayAddOnInput;
    };
 
    Game.prototype.rotateLeft = function() {
       this.newThing.rotate(new THREE.Vector3(0, 0, 1), -Math.PI / 2);
+      
+      this.fallTimer += delayAddOnInput;
+
+      while (this.newThing.intersects(this.floor, this.coreRotation)) {
+         this.newThing.position.y ++;
+      }
    };
 
    Game.prototype.rotateRight = function() {
       this.newThing.rotate(new THREE.Vector3(0, 0, 1), Math.PI / 2);
+      
+      this.fallTimer += delayAddOnInput;
+
+      while (this.newThing.intersects(this.floor, this.coreRotation)) {
+         this.newThing.position.y ++;
+      }
    };
 
    var inputDelay = {};
@@ -146,7 +205,6 @@ Game = (function() {
 
    var paused = false, pPress = false;
    var sPress = false;
-   var fallDelay = 0;
    Game.prototype.update = function(dt) {
       if (Input.getKey('ESC')) {
          if (!pPress) paused = !paused;
@@ -195,11 +253,11 @@ Game = (function() {
       this.testInput('UP', this.rotateLeft);
 
       if (Input.getKey('DOWN')) {
-         fallDelay -= 5;
+         this.fallTimer -= 5;
       }
 
-      if (fallDelay-- <= 0) {
-         fallDelay = this.fallDelay;
+      if (this.fallTimer-- <= 0) {
+         this.fallTimer = this.fallDelay;
          
          this.fall();
       }
