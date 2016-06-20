@@ -18,7 +18,7 @@
       D: 68,
    })
 
-   window.game = new Game();
+   window.game = new Game(renderer);
 
    function update() {
       requestAnimationFrame(update);

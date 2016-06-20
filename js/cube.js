@@ -10,7 +10,7 @@ var Cube = (function() {
       this.position.add(position);
    };
 
-   Cube.prototype = THREE.Mesh.prototype;
+   Cube.prototype = Object.create(THREE.Mesh.prototype);
 
    Cube.Group = function(color) {
       THREE.Object3D.call(this);
@@ -22,7 +22,7 @@ var Cube = (function() {
       this.cubes = [];
    };
 
-   Cube.Group.prototype = THREE.Object3D.prototype;
+   Cube.Group.prototype = Object.create(THREE.Object3D.prototype);
 
    Cube.Group.prototype.setColor = function(color) {
       this.material = new THREE.MeshLambertMaterial({ color: color || 0xffffff, map: texture });
@@ -64,7 +64,7 @@ var Cube = (function() {
    Cube.Group.prototype.addCube = function(x, y, z) {
       var cube = new Cube(new THREE.Vector3(x, y, z), this.material);
 
-      THREE.Object3D.prototype.add.call(this, cube);
+      this.add(cube);
 
       this.mapCube(cube);
    };
@@ -105,28 +105,6 @@ var Cube = (function() {
       other.cubes = [];
    };
 
-   Cube.Group.prototype.removeRow = function(y) {
-      y -= this.position.y;
-
-      this.cubes.splice(y, 1);
-
-      var toRemove = [];
-      for (var i = 0; i < this.children.length; i ++) {
-         var block = this.children[i];
-
-         if (block.position.y === y) {
-            toRemove.push(block);
-         }
-         else if (block.position.y > y) {
-            block.position.y --;
-         }
-      }
-
-      while (toRemove.length) {
-         this.remove(toRemove.shift());
-      }
-   };
-
    Cube.Group.prototype.intersects = function(other, otherRotation) {
       var rotatedMin = this.min.clone().add(this.position).applyAxisAngle(UP, otherRotation).round();
       var rotatedMax = this.max.clone().add(this.position).applyAxisAngle(UP, otherRotation).round();
@@ -156,6 +134,90 @@ var Cube = (function() {
             if (other.hasCubeAt(parseInt(x) + this.position.x, parseInt(y) + this.position.y, otherRotation)) {
                return true;
             }
+         }
+      }
+   };
+
+   Cube.LayeredGroup = function() {
+      Cube.Group.apply(this, arguments);
+
+      this.rows = [];
+
+      this.squish_material = new THREE.MeshLambertMaterial({ color: 0xff4444, map: texture });
+      this.squishing = [];
+      this.squish = 0;
+   };
+
+   Cube.LayeredGroup.prototype = Object.create(Cube.Group.prototype);
+
+   Cube.LayeredGroup.prototype.add = function(object) {
+      var y = object.position.y;
+
+      if (!this.rows[object.position.y]) {
+         this.rows[y] = new THREE.Object3D();
+         this.rows[y].position.y = y;
+         this.rows[y].target_y = y;
+
+         THREE.Object3D.prototype.add.call(this, this.rows[y]);
+      }
+
+      this.rows[y].add(object);
+
+      this.mapCube(object);
+      object.position.y = 0;
+   };
+
+   Cube.LayeredGroup.prototype.update = function(dt) {
+      var squishSpeed = 5;
+
+      for (var y in this.rows) {
+         var row = this.rows[y];
+         if (!row) 
+            continue;
+
+         if (row.position.y !== row.target_y) {
+            var dist_to_move = squishSpeed * dt;
+
+            if (Math.abs(row.position.y - row.target_y) <= dist_to_move) {
+               row.position.y = row.target_y;
+            }
+            else {
+               dist_to_move *= Math.sign(row.target_y - row.position.y);
+               row.position.y += dist_to_move;
+            }
+         }
+      }
+
+      for (var i = 0; i < this.squishing.length; i ++) {
+         var row = this.squishing[i];
+
+         row.scale.y -= squishSpeed * dt;
+         row.position.y -= squishSpeed * dt / 2;
+
+         if (row.scale.y <= 0) {
+            this.remove(row);
+            this.squishing.splice(i--, 1);
+         }
+      }
+   };
+
+   Cube.LayeredGroup.prototype.removeRow = function(y) {
+      y -= this.position.y;
+
+      this.cubes.splice(y, 1);
+
+      this.squishing.push(this.rows[y]);
+
+      while (y < this.rows.length) {
+         y ++;
+
+         var row = this.rows[y];
+
+         if (row) {
+            row.target_y --;
+
+            this.rows[y - 1] = row;
+            this.rows[y] = null;
          }
       }
    };

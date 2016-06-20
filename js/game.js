@@ -7,6 +7,15 @@ Game = (function() {
    var Game = function(renderer) {
       this.scene = new THREE.Scene();
 
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(window.innerWidth, window.innerHeight);
+
+      // Create random particle system first
+      this.particleSystem = new THREE.GPUParticleSystem({
+         maxParticles: 250000
+      });
+      this.scene.add(this.particleSystem);
+
       // Lighting
       var ambientLight = new THREE.AmbientLight(0x606060);
       this.scene.add(ambientLight);
@@ -33,14 +42,16 @@ Game = (function() {
       this.scoreDiv = document.getElementById('score');
 
       // Base for the game
-      this.floor = new Cube.Group();
+      this.floor = new Cube.LayeredGroup();
       this.floor.position.y = -5;
       this.core.add(this.floor);
 
+      this.width = this.depth = 11;
+
       // Create The base
-      for (var i = 0; i < 11; i ++) {
-         for (var j = 0; j < 11; j ++) {
-            this.floor.addCube(i - 5, 0, j - 5);
+      for (var i = 0; i < this.width; i ++) {
+         for (var j = 0; j < this.depth; j ++) {
+            this.floor.addCube(i - (this.width - 1) / 2, 0, j - (this.depth - 1) / 2);
          }
       }
 
@@ -52,12 +63,34 @@ Game = (function() {
 
       // Camera
       var orthoScale = 80;
-      this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      this.camera = new THREE.PerspectiveCamera(28, window.innerWidth / window.innerHeight, 0.1, 1000);
       this.camera = new THREE.OrthographicCamera(-window.innerWidth / orthoScale, window.innerWidth / orthoScale, window.innerHeight / orthoScale, -window.innerHeight / orthoScale, -500, 1000);
       this.camera.position.y = 0;
-      this.camera.position.z = 20;
+      this.camera.position.z = 100;
       this.camera.lookAt(new THREE.Vector3(0, 0, 0));
    };
+
+   // options passed during each spawned
+   options = {
+      position: new THREE.Vector3(),
+      positionRandomness: .2,
+      velocity: new THREE.Vector3(0., .05, 0.),
+      velocityRandomness: .2,
+      color: 0xaa88ff,
+      colorRandomness: .2,
+      turbulence: 0,
+      lifetime: 2,
+      size: 8,
+      sizeRandomness: 1
+   };
+   spawnerOptions = {
+      spawnRate: 15000,
+      horizontalSpeed: 2.5,
+      verticalSpeed: 1.33,
+      timeScale: 1
+   }
+
+   var tick = 0;
 
    Game.prototype.nextLevel = function() {
       this.levelDiv.innerHTML = '' + (++this.level);
@@ -99,7 +132,7 @@ Game = (function() {
 
             if (solid) {
                linesRemoved ++;
-               this.floor.removeRow(y--);
+               this.removeRow(y--);
 
                if ((++this.linesRemoved) % 6 === 0) {
                   this.nextLevel();
@@ -203,16 +236,63 @@ Game = (function() {
       }
    };
 
+   Game.prototype.removeRow = function(y) {
+      // Remove the actual row
+      this.floor.removeRow(y);
+
+      options.position.y = y;
+      var granularity = 0.01;
+
+      options.position.z = Math.floor(this.depth / 2);
+      options.velocity.x = 0;
+      options.velocity.z = 5;
+      for (var x = 0; x < this.width; x += granularity) {
+         options.position.x = x - Math.floor(this.width / 2);
+         this.particleSystem.spawnParticle(options);
+      }
+
+      options.position.z *= -1;
+      options.velocity.z *= -1;
+      for (var x = 0; x < this.width; x += granularity) {
+         options.position.x = x - Math.floor(this.width / 2);
+         this.particleSystem.spawnParticle(options);
+      }
+
+      // And the other side now
+      options.position.x = Math.floor(this.width / 2);
+      options.velocity.x = -options.velocity.z;
+      options.velocity.z = 0.;
+      for (var z = 0; z < this.depth; z += granularity) {
+         options.position.z = z - Math.floor(this.depth / 2);
+         this.particleSystem.spawnParticle(options);
+      }
+
+      options.position.x *= -1;
+      options.velocity.x *= -1;
+      for (var z = 0; z < this.depth; z += granularity) {
+         options.position.z = z - Math.floor(this.depth / 2);
+         this.particleSystem.spawnParticle(options);
+      }
+   }
+
    var paused = false, pPress = false;
    var sPress = false;
+   var pulseTimer = 0;
    Game.prototype.update = function(dt) {
+      tick += dt * spawnerOptions.timeScale;
+      if (tick < 0) tick = 0;
+
+      this.particleSystem.update(tick);
+
+      this.floor.update(dt);
+
       if (Input.getKey('ESC')) {
          if (!pPress) paused = !paused;
 
          if (paused) {
-            this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            this.camera = new THREE.PerspectiveCamera(28, window.innerWidth / window.innerHeight, 0.1, 1000);
             this.camera.position.y = 5;
-            this.camera.position.z = 20;
+            this.camera.position.z = 40;
             this.camera.lookAt(new THREE.Vector3(0, 0, 0));
          }
          else {
