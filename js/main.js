@@ -11,14 +11,17 @@
       DOWN: 40,
       SPACE: 32,
       ESC: 27,
+      SHIFT: 16,
 
       W: 87,
       A: 65,
       S: 83,
       D: 68,
-   })
+   });
 
    window.game = new Game(renderer);
+
+   Input.game = game;
 
    function update() {
       requestAnimationFrame(update);

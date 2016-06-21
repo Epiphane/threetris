@@ -8,9 +8,15 @@ var Input = (function() {
    };
    document.onkeyup = function(evt) {
       keyState[evt.keyCode] = false;
+
+      if (Input.game) {
+         var fn = Input.game['on' + CODES[evt.keyCode]]
+
+         if (fn) fn.bind(Input.game)();
+      }
    };
 
-   var Input = {};
+   var Input = { game: null };
 
    Input.init = function(keys) {
       KEYS = keys;

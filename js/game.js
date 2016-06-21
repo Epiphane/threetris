@@ -68,6 +68,10 @@ Game = (function() {
       this.camera.position.y = 0;
       this.camera.position.z = 100;
       this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+      // Backup (so you can press Shift and save a piece for later)
+      this.backup = null;
+      this.hasUsedBackup = false;
    };
 
    // options passed during each spawned
@@ -83,12 +87,6 @@ Game = (function() {
       size: 8,
       sizeRandomness: 1
    };
-   spawnerOptions = {
-      spawnRate: 15000,
-      horizontalSpeed: 2.5,
-      verticalSpeed: 1.33,
-      timeScale: 1
-   }
 
    var tick = 0;
 
@@ -102,13 +100,13 @@ Game = (function() {
    };
 
    Game.prototype.newPiece = function() {
-      this.newThing.setColor(new THREE.Color(Math.random() * 3 / 4 + 0.25, Math.random() * 3 / 4 + 0.25, Math.random() * 3 / 4 + 0.25));
-
       this.pieceFactory.createRandom(this.newThing);
 
       this.newThing.position.x = 0;
       this.newThing.position.y = 8;
       this.newThing.position.z = 5;
+
+      this.hasUsedBackup = false;
    };
 
    Game.prototype.fall = function() {
@@ -228,7 +226,7 @@ Game = (function() {
       if (inputDelay[key]-- <= 0) {
          if (Input.getKey(key)) {
             ifPressed.call(this);
-            inputDelay[key] = 12;
+            inputDelay[key] = 8;
          }
       }
       if (!Input.getKey(key)) {
@@ -275,40 +273,60 @@ Game = (function() {
       }
    }
 
-   var paused = false, pPress = false;
-   var sPress = false;
-   var pulseTimer = 0;
+   Game.prototype.onESC = function() {
+      this.paused = !this.paused;
+
+      if (this.paused) {
+         this.camera = new THREE.PerspectiveCamera(28, window.innerWidth / window.innerHeight, 0.1, 1000);
+         this.camera.position.y = 5;
+         this.camera.position.z = 40;
+         this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+      }
+      else {
+         this.camera = new THREE.OrthographicCamera(-window.innerWidth / 80, window.innerWidth / 80, window.innerHeight / 80, -window.innerHeight / 80, -500, 1000);
+         this.camera.position.y = 0;
+         this.camera.position.z = 20;
+         this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+      }
+   };
+
+   Game.prototype.onSPACE = function() {
+      while (!this.fall())
+         ;
+   };
+
+   Game.prototype.onSHIFT = function() {
+      if (!game.hasUsedBackup) {
+         var backup = this.backup;
+         this.backup = this.newThing;
+
+         if (backup) {
+            this.newThing = backup;
+            this.newThing.position.x = 0;
+            this.newThing.position.y = 8;
+            this.newThing.position.z = 5;
+         }
+         else {
+            this.newThing = new Cube.Group(0xff0000);
+            this.newPiece();
+         }
+
+         this.scene.add(this.newThing);
+         this.scene.remove(this.backup);
+
+         game.hasUsedBackup = true;
+      }
+   };
+
    Game.prototype.update = function(dt) {
-      tick += dt * spawnerOptions.timeScale;
+      tick += dt;
       if (tick < 0) tick = 0;
 
       this.particleSystem.update(tick);
 
       this.floor.update(dt);
 
-      if (Input.getKey('ESC')) {
-         if (!pPress) paused = !paused;
-
-         if (paused) {
-            this.camera = new THREE.PerspectiveCamera(28, window.innerWidth / window.innerHeight, 0.1, 1000);
-            this.camera.position.y = 5;
-            this.camera.position.z = 40;
-            this.camera.lookAt(new THREE.Vector3(0, 0, 0));
-         }
-         else {
-            this.camera = new THREE.OrthographicCamera(-window.innerWidth / 80, window.innerWidth / 80, window.innerHeight / 80, -window.innerHeight / 80, -500, 1000);
-            this.camera.position.y = 0;
-            this.camera.position.z = 20;
-            this.camera.lookAt(new THREE.Vector3(0, 0, 0));
-         }
-
-         pPress = true;
-      }
-      else {
-         pPress = false;
-      }
-
-      if (paused) return;
+      if (this.paused) return;
 
       if (this.core.rotation.y !== this.coreRotation) {
          var dist = this.rotationSpeed * Math.min(this.coreRotation - this.core.rotation.y, 1);
@@ -318,14 +336,6 @@ Game = (function() {
          if (Math.abs(this.coreRotation - this.core.rotation.y) < 0.01) {
             this.core.rotation.y = this.coreRotation;
          }
-      }
-      else {
-         // if (Input.getKey('A')) {
-         //    this.coreRotation -= Math.PI / 2;
-         // }
-         // else if (Input.getKey('D')) {
-         //    this.coreRotation += Math.PI / 2;
-         // }
       }
 
       this.testInput('LEFT', this.moveLeft);
@@ -341,12 +351,6 @@ Game = (function() {
          
          this.fall();
       }
-
-      if (Input.getKey('SPACE') && !sPress) {
-         while (!this.fall())
-            ;
-      }
-      sPress = Input.getKey('SPACE');
    };
 
    Game.prototype.render = function(renderer) {
