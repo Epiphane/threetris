@@ -4,11 +4,13 @@
  * new Game() will create...a new game.
  */
 Game = (function() {
-   var Game = function(renderer) {
+   var orthoScale = 80;
+
+   var Game = function(width, height) {
       this.scene = new THREE.Scene();
 
-      renderer.setPixelRatio(window.devicePixelRatio);
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      this.width = width;
+      this.height = height
 
       // Create random particle system first
       this.particleSystem = new THREE.GPUParticleSystem({
@@ -43,15 +45,15 @@ Game = (function() {
 
       // Base for the game
       this.floor = new Cube.LayeredGroup();
-      this.floor.position.y = -5;
+      this.floor.position.y = -7;
       this.core.add(this.floor);
 
-      this.width = this.depth = 11;
+      this.floor_width = this.depth = 11;
 
       // Create The base
-      for (var i = 0; i < this.width; i ++) {
+      for (var i = 0; i < this.floor_width; i ++) {
          for (var j = 0; j < this.depth; j ++) {
-            this.floor.addCube(i - (this.width - 1) / 2, 0, j - (this.depth - 1) / 2);
+            this.floor.addCube(i - (this.floor_width - 1) / 2, 0, j - (this.depth - 1) / 2);
          }
       }
 
@@ -62,9 +64,11 @@ Game = (function() {
       this.newPiece();
 
       // Camera
-      var orthoScale = 80;
-      this.camera = new THREE.PerspectiveCamera(28, window.innerWidth / window.innerHeight, 0.1, 1000);
-      this.camera = new THREE.OrthographicCamera(-window.innerWidth / orthoScale, window.innerWidth / orthoScale, window.innerHeight / orthoScale, -window.innerHeight / orthoScale, -500, 1000);
+      this.camera = new THREE.PerspectiveCamera(28, width / height, 0.1, 1000);
+      this.camera = new THREE.OrthographicCamera(-width / orthoScale, 
+                                                  width / orthoScale, 
+                                                  height / orthoScale, 
+                                                 -height / orthoScale, -500, 1000);
       this.camera.position.y = 0;
       this.camera.position.z = 100;
       this.camera.lookAt(new THREE.Vector3(0, 0, 0));
@@ -132,7 +136,7 @@ Game = (function() {
                linesRemoved ++;
                this.removeRow(y--);
 
-               if ((++this.linesRemoved) % 6 === 0) {
+               if ((++this.linesRemoved) % 4 === 0) {
                   this.nextLevel();
 
                   if (this.fallDelay > 6) {
@@ -244,20 +248,20 @@ Game = (function() {
       options.position.z = Math.floor(this.depth / 2);
       options.velocity.x = 0;
       options.velocity.z = 5;
-      for (var x = 0; x < this.width; x += granularity) {
-         options.position.x = x - Math.floor(this.width / 2);
+      for (var x = 0; x < this.floor_width; x += granularity) {
+         options.position.x = x - Math.floor(this.floor_width / 2);
          this.particleSystem.spawnParticle(options);
       }
 
       options.position.z *= -1;
       options.velocity.z *= -1;
-      for (var x = 0; x < this.width; x += granularity) {
-         options.position.x = x - Math.floor(this.width / 2);
+      for (var x = 0; x < this.floor_width; x += granularity) {
+         options.position.x = x - Math.floor(this.floor_width / 2);
          this.particleSystem.spawnParticle(options);
       }
 
       // And the other side now
-      options.position.x = Math.floor(this.width / 2);
+      options.position.x = Math.floor(this.floor_width / 2);
       options.velocity.x = -options.velocity.z;
       options.velocity.z = 0.;
       for (var z = 0; z < this.depth; z += granularity) {
@@ -277,13 +281,16 @@ Game = (function() {
       this.paused = !this.paused;
 
       if (this.paused) {
-         this.camera = new THREE.PerspectiveCamera(28, window.innerWidth / window.innerHeight, 0.1, 1000);
+         this.camera = new THREE.PerspectiveCamera(28, this.width / this.height, 0.1, 1000);
          this.camera.position.y = 5;
          this.camera.position.z = 40;
          this.camera.lookAt(new THREE.Vector3(0, 0, 0));
       }
       else {
-         this.camera = new THREE.OrthographicCamera(-window.innerWidth / 80, window.innerWidth / 80, window.innerHeight / 80, -window.innerHeight / 80, -500, 1000);
+         this.camera = new THREE.OrthographicCamera(-this.width / orthoScale, 
+                                                     this.width / orthoScale, 
+                                                     this.height / orthoScale, 
+                                                    -this.height / orthoScale, -500, 1000);
          this.camera.position.y = 0;
          this.camera.position.z = 20;
          this.camera.lookAt(new THREE.Vector3(0, 0, 0));
@@ -347,9 +354,11 @@ Game = (function() {
       }
 
       if (this.fallTimer-- <= 0) {
-         this.fallTimer = this.fallDelay;
-         
-         this.fall();
+         if (!this.wouldCollide() || this.fallTimer <= -6) {
+            this.fallTimer = this.fallDelay;
+            
+            this.fall();
+         }
       }
    };
 
