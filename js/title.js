@@ -80,7 +80,6 @@ Title = (function() {
          this.newPiece();
 
          // Camera
-         console.log(width, height, orthoScale)
          this.camera = new THREE.PerspectiveCamera(28, width / height, 0.1, 1000);
          this.camera = new THREE.OrthographicCamera(-width / orthoScale, 
                                                      width / orthoScale, 
@@ -275,7 +274,7 @@ Title = (function() {
          }
       },
 
-      onESC: function() {
+      key_ESC: function() {
          this.paused = !this.paused;
 
          if (this.paused) {
@@ -295,13 +294,13 @@ Title = (function() {
          }
       },
 
-      onSPACE: function() {
+      key_SPACE: function() {
          while (!this.fall())
             ;
       },
 
-      onSHIFT: function() {
-         if (!game.hasUsedBackup) {
+      key_SHIFT: function() {
+         if (!this.hasUsedBackup) {
             var backup = this.backup;
             this.backup = this.newThing;
 
@@ -319,7 +318,7 @@ Title = (function() {
             this.scene.add(this.newThing);
             this.scene.remove(this.backup);
 
-            game.hasUsedBackup = true;
+            this.hasUsedBackup = true;
          }
       },
 
@@ -347,7 +346,7 @@ Title = (function() {
          this.testInput(game, 'RIGHT', this.moveRight);
          this.testInput(game, 'UP', this.rotateLeft);
 
-         if (Input.getKey('DOWN')) {
+         if (game.keyDown('DOWN')) {
             this.fallTimer -= 5;
          }
 

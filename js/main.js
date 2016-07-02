@@ -1,10 +1,13 @@
 (function(document) {
-   // Initialize scene & camers
+   var GAME_WIDTH = 680,
+       GAME_HEIGHT = 680;
+
+   // Initialize scene & camera
    var renderer = new THREE.WebGLRenderer();
-   renderer.setSize(window.innerWidth, window.innerHeight);
+   renderer.setSize(GAME_WIDTH, GAME_HEIGHT);
    document.body.appendChild(renderer.domElement);
 
-   Input.init({
+   Juicy.Game.init(renderer, GAME_WIDTH, GAME_HEIGHT, {
       LEFT: 37,
       UP: 38,
       RIGHT: 39,
@@ -19,16 +22,5 @@
       D: 68,
    });
 
-   window.game = new Game(renderer);
-
-   Input.game = game;
-
-   function update() {
-      requestAnimationFrame(update);
-
-      game.update(0.018);
-      game.render(renderer);
-   }
-
-   update();
+   Juicy.Game.setState(new Title(GAME_WIDTH, GAME_HEIGHT)).run();
 })(document);
