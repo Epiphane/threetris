@@ -61,8 +61,20 @@ var Cube = (function() {
       if (pos.z > this.max.z) this.max.z = pos.z;
    };
 
-   Cube.Group.prototype.addCube = function(x, y, z) {
-      var cube = new Cube(new THREE.Vector3(x, y, z), this.material);
+   Cube.Group.prototype.addCube = function(x, y, z, color) {
+      var cube;
+      if (x instanceof Cube) {
+         cube = x;
+      }
+      else {
+         var material = this.material;
+
+         if (color) {
+            material = new THREE.MeshLambertMaterial({ color: color, map: texture });
+         }
+
+         cube = new Cube(new THREE.Vector3(x, y, z), material);
+      }
 
       this.add(cube);
 

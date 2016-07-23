@@ -1,0 +1,114 @@
+<html>
+<head>
+<title>Text Tool</title>
+<style type="text/css">
+td {
+   width: 10px;
+   height: 10px;
+   background: #ccc;
+   padding: 0;
+}
+</style>
+</head>
+<body>
+Rows: <input id="rows" type="number" value="10" />
+Cols: <input id="cols" type="number" value="40" />
+<table><tbody id="display"><tr><td></td></tr></tbody></table>
+<textarea id="result"></textarea>
+<script type="text/javascript" src="jquery-3.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+   var table = $('#display');
+   var output = $('#result');
+   var rowsInput = $('#rows');
+   var colsInput = $('#cols');
+
+   var activeColor = '#f00';
+
+   function rgbToHex(rgb) {
+      var match = rgb.match(/\(([0-9]+), ([0-9]+), ([0-9]+)\)/);
+
+      return '#' + match.slice(1 ,4).map(function(num) {
+         var str = parseInt(num, 10).toString(16);
+         if (str.len === 1) return '0' + str;
+         else return str;
+      }).join('');
+   }
+
+   function updateOutput() {
+      table.find('td').each(function(i, el) {
+         // console.log(rgbToHex($(el).css("background-color")));
+      })
+   }
+
+   var mousedown = false;
+   $(document).mousedown(function() { mousedown = true; });
+   $(document).mouseup(function() { mousedown = false; });
+
+   function colorCell(cell) {
+      cell.css('background-color', activeColor);
+   }
+
+   function addCell(row) {
+      var cell = $('<td></td>');
+
+      cell.click(function() {
+         $(this).css('background-color', activeColor);
+      });
+
+      cell.mouseenter(function() {
+
+      })
+   
+      row.append(cell);
+   }
+
+   function adjustTable() {
+      var rows = rowsInput.val();
+      var cols = colsInput.val();
+
+      var cr = table.children().length;
+      var cc = table.children().first().children().length;
+
+      var coldiff = cols - cc;
+      if (coldiff > 0) {
+         table.children().each(function(i, el) {
+            var row = $(el);
+            for (var n = 0; n < coldiff; n ++) {
+               addCell(row);
+            }
+         });
+      }
+      else if (coldiff < 0) {
+         coldiff *= -1;
+         table.find('td:nth-last-child(-n+' + coldiff + ')').remove();
+      }
+
+      var rowdiff = rows - cr;
+      if (rowdiff > 0) {
+         for (var n = 0; n < rowdiff; n ++) {
+            (function() {
+               var row = $('<tr></tr>');
+               for (var n = 0; n < cols; n ++) {
+                  addCell(row);
+               }
+               table.append(row);
+            })();
+         }
+      }
+      else if (rowdiff < 0) {
+         rowdiff *= -1;
+         table.find('tr:nth-last-child(-n+' + rowdiff + ')').remove();
+      }
+   }
+
+   adjustTable();
+
+   setInterval(updateOutput, 2000);
+
+   rowsInput.change(adjustTable);
+   colsInput.change(adjustTable);
+});
+</script>
+</body>
+</html>

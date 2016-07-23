@@ -1,6 +1,6 @@
 (function(document) {
-   var GAME_WIDTH = 680,
-       GAME_HEIGHT = 680;
+   window.GAME_WIDTH = 680,
+   window.GAME_HEIGHT = 680;
 
    // Initialize scene & camera
    var renderer = new THREE.WebGLRenderer();
