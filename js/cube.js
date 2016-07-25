@@ -20,6 +20,8 @@ var Cube = (function() {
       this.min = new THREE.Vector3(0, 0, 0);
       this.max = new THREE.Vector3(0, 0, 0);
       this.cubes = [];
+
+      this.CubeObj = Cube;
    };
 
    Cube.Group.prototype = Object.create(THREE.Object3D.prototype);
@@ -61,7 +63,7 @@ var Cube = (function() {
       if (pos.z > this.max.z) this.max.z = pos.z;
    };
 
-   Cube.Group.prototype.addCube = function(x, y, z, color) {
+   Cube.Group.prototype.convertToCube = function(x, y, z, color) {
       var cube;
       if (x instanceof Cube) {
          cube = x;
@@ -73,8 +75,14 @@ var Cube = (function() {
             material = new THREE.MeshLambertMaterial({ color: color, map: texture });
          }
 
-         cube = new Cube(new THREE.Vector3(x, y, z), material);
+         cube = new this.CubeObj(new THREE.Vector3(x, y, z), material);
       }
+
+      return cube;
+   };
+
+   Cube.Group.prototype.addCube = function(x, y, z, color) {
+      var cube = this.convertToCube(x, y, z, color);
 
       this.add(cube);
 
