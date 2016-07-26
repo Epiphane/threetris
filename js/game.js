@@ -6,6 +6,7 @@ Game = (function() {
    var delayAddOnInput = 4;
    var tick = 0;
    var inputDelay = {};
+   var TOP = 6;
 
    // options passed during each spawned
    options = {
@@ -118,6 +119,8 @@ Game = (function() {
          this.hudImage.scale.set(width * 2 / orthoScale, height * 2 / orthoScale, 1);
 
          this.scene.add(this.hudImage);
+
+         window.game = this;
       },
 
       nextLevel: function() {
@@ -130,24 +133,17 @@ Game = (function() {
       },
 
       newPiece: function() {
-         var previewThing = this.previewThing;
-         while (previewThing.children.length) {
-            previewThing.remove(previewThing.children[0]);
-         }
+         this.previewThing.clear();
 
          this.pieceFactory.createRandom(this.newThing, this.previewThing);
 
          this.newThing.position.x = 0;
-         this.newThing.position.y = 6;
+         this.newThing.position.y = TOP;
          this.newThing.position.z = 5;
 
          this.hasUsedBackup = false;
-         this.predictFall();
 
-         // TODO This fixes a bug...somehow...?
-         // The preview just like. Won't work unless you rotate it?
-         this.rotateLeft();
-         this.rotateRight();
+         this.predictFall();
       },
 
       predictFall: function() {
@@ -331,6 +327,7 @@ Game = (function() {
 
       key_ESC: function() {
          this.paused = !this.paused;
+         return;
 
          if (this.paused) {
             this.camera = new THREE.PerspectiveCamera(28, this.width / this.height, 0.1, 1000);
@@ -364,7 +361,7 @@ Game = (function() {
             if (backup) {
                this.newThing = backup;
                this.newThing.position.x = 0;
-               this.newThing.position.y = 8;
+               this.newThing.position.y = TOP;
                this.newThing.position.z = 5;
 
                this.previewThing = backupPreview;

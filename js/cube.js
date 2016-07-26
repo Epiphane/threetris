@@ -92,6 +92,16 @@ var Cube = (function() {
       this.mapCube(cube);
    };
 
+   Cube.Group.prototype.clear = function() {
+      while (this.children.length) {
+         this.remove(this.children[0]);
+      }
+
+      this.cubes = [];
+      this.min = new THREE.Vector3(0, 0, 0);
+      this.max = new THREE.Vector3(0, 0, 0);
+   };
+
    var UP = new THREE.Vector3(0, -1, 0);
 
    Cube.Group.prototype.hasCubeAt = function(x, y, rotation) {
@@ -159,6 +169,8 @@ var Cube = (function() {
             }
          }
       }
+
+      return false;
    };
 
    Cube.LayeredGroup = function() {
