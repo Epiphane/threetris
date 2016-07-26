@@ -34,22 +34,6 @@ var SpecialCube = (function() {
       // sin curve for fading
       var posOnCurve = 2 * Math.PI * (this.timer % fadeSpeed) / fadeSpeed;
       this.setFade(Math.cos(posOnCurve) / 2 + 0.5);
-
-      // if (this.fading > 0) {
-      //    this.fading -= dt;
-
-      //    // Between [0, 1]
-      //    var fade = Math.abs(this.fading - this.fadeLength / 2) * 2 / this.fadeLength;
-
-      //    this.setFade(fade);
-      // }
-      // else {
-      //    this.setFade(1);
-      // }
-   };
-
-   SpecialCube.prototype.fade = function() {
-      // this.fading = this.fadeLength;
    };
 
    SpecialCube.Group = function() {
