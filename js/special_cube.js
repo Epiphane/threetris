@@ -18,7 +18,7 @@ var SpecialCube = (function() {
    SpecialCube.prototype = Object.create(Cube.prototype);
 
    SpecialCube.prototype.setFade = function(fade) {
-      fade = Math.min(fade, 0.4);
+      fade = Math.min(fade * 0.4, 0.4);
 
       this.material.color.setRGB(
          WHITE.r * fade + (1 - fade) * this.realColor.r,
@@ -39,7 +39,6 @@ var SpecialCube = (function() {
    SpecialCube.Group = function() {
       Cube.Group.apply(this, arguments);
 
-      this.cols = [];
       this.cubeList = [];
       this.CubeObj = SpecialCube;
    };
@@ -51,19 +50,11 @@ var SpecialCube = (function() {
 
       var pos_x = cube.position.x;
 
-      if (!this.cols[pos_x]) {
-         this.cols[pos_x] = new THREE.Group();
-         this.cols[pos_x].position.x = pos_x;
-
-         this.add(this.cols[pos_x]);
-      }
+      this.add(cube);
       
       this.mapCube(cube);
 
-      cube.position.x = 0;
-
       this.cubeList.push(cube);
-      this.cols[pos_x].add(cube);
    };
 
    return SpecialCube;

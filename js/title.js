@@ -52,7 +52,7 @@ Title = (function() {
          //                                            -height / orthoScale, -500, 1000);
 
          this.camera.position.y = 0;
-         this.camera.position.z = 150;//300;
+         this.camera.position.z = 250;
          this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
          // Create the objects
@@ -83,7 +83,6 @@ Title = (function() {
 
                   if (color) {
                      title.addCube(x + dx, dy - y, 0, color);
-                     title.addCube(0, dy - y, x + dx, color);
                   }
                }
             }
@@ -107,16 +106,16 @@ Title = (function() {
       update: function(dt, game) {
          this.timer += dt;
 
-         // this.title.cubeList.forEach(function(block) {
-         //    block.update(dt);
-         // });
+         this.title.cubeList.forEach(function(block) {
+            block.update(dt);
+         });
 
          if (this.waveLength) {
             var waveTime = this.timer % (this.waveLength * this.waveMoveSpeed + this.waveDelay);
             var wavePos = waveTime / this.waveMoveSpeed + this.title.min.x;
          }
 
-         this.title.rotation.y += dt;
+         // this.title.rotation.y += dt;
       },
 
       render: function(renderer) {
