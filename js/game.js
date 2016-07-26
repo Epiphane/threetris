@@ -2,7 +2,7 @@
  * Game screen
  */
 Game = (function() {
-   var orthoScale = 80;
+   var orthoScale = 60;
    var delayAddOnInput = 4;
    var tick = 0;
    var inputDelay = {};
@@ -39,7 +39,7 @@ Game = (function() {
          this.scene.add(ambientLight);
 
          var directionalLight = new THREE.DirectionalLight(0xffffff);
-             directionalLight.position.set(1, 0.75, 0.5).normalize();
+             directionalLight.position.set(1, 0.75, 1).normalize();
          this.scene.add(directionalLight);
 
          // Create the objects
@@ -61,7 +61,8 @@ Game = (function() {
 
          // Base for the game
          this.floor = new Cube.LayeredGroup();
-         this.floor.position.y = -7;
+         this.floor.position.x =  0;
+         this.floor.position.y = -8;
          this.core.add(this.floor);
 
          this.floor_width = this.depth = 11;
@@ -81,24 +82,6 @@ Game = (function() {
             linewidth: 2
          });
 
-         // Create the grid
-         for (var i = 0; i <= this.floor_width; i ++) {
-            var x = i - this.floor_width / 2;
-            var ymin = -6.5;
-            var ymax = 20;
-            var z = -20;
-            {
-               var geometry = new THREE.Geometry();
-               geometry.vertices.push(
-                  new THREE.Vector3(x, ymin, z),
-                  new THREE.Vector3(x, ymax, z)
-               );
-
-               var line = new THREE.LineSegments(geometry, this.grid_material);
-               // this.scene.add(line);
-            }
-         }
-
          this.newThing = new Cube.Group(0xff0000);
          this.scene.add(this.newThing);
 
@@ -106,7 +89,6 @@ Game = (function() {
          this.newPiece();
 
          // Camera
-         this.camera = new THREE.PerspectiveCamera(28, width / height, 0.1, 1000);
          this.camera = new THREE.OrthographicCamera(-width / orthoScale, 
                                                      width / orthoScale, 
                                                      height / orthoScale, 
@@ -118,6 +100,18 @@ Game = (function() {
          // Backup (so you can press Shift and save a piece for later)
          this.backup = null;
          this.hasUsedBackup = false;
+
+         // Set up the HUD
+         var hudImage = new THREE.TextureLoader().load('textures/hud.png');
+             hudImage.minFilter = THREE.NearestFilter;
+             hudImage.maxFilter = THREE.NearestFilter;
+         var hudMaterial = new THREE.SpriteMaterial({ map: hudImage });
+         this.hudImage = new THREE.Sprite(hudMaterial);
+
+         this.hudImage.position.set(0, 0, 10);
+         this.hudImage.scale.set(width * 2 / orthoScale, height * 2 / orthoScale, 1);
+
+         this.scene.add(this.hudImage);
       },
 
       nextLevel: function() {
@@ -133,7 +127,7 @@ Game = (function() {
          this.pieceFactory.createRandom(this.newThing);
 
          this.newThing.position.x = 0;
-         this.newThing.position.y = 8;
+         this.newThing.position.y = 6;
          this.newThing.position.z = 5;
 
          this.hasUsedBackup = false;
@@ -360,7 +354,8 @@ Game = (function() {
 
          if (this.core.rotation.y !== this.coreRotation) {
             // console.log(this.grid_material.color)
-            var dist = Math.abs(this.core.rotation.y % (Math.PI / 2) - Math.PI / 4) / (Math.PI / 4);
+            var pi_4 = Math.PI / 4;
+            var dist = Math.abs(this.core.rotation.y % (Math.PI / 2) - pi_4) / pi_4;
             var scale = Math.pow(dist, 10) * 0.8 + 0.2;
             this.grid_material.color = new THREE.Color(this.grid_color.r * scale, 
                                                        this.grid_color.g * scale, 

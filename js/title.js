@@ -2,25 +2,6 @@
  * Title screen
  */
 Title = (function() {
-   var orthoScale = 80;
-   var delayAddOnInput = 4;
-   var tick = 0;
-   var inputDelay = {};
-
-   // options passed during each spawned
-   options = {
-      position: new THREE.Vector3(),
-      positionRandomness: .2,
-      velocity: new THREE.Vector3(0., .05, 0.),
-      velocityRandomness: .2,
-      color: 0xaa88ff,
-      colorRandomness: .2,
-      turbulence: 0,
-      lifetime: 2,
-      size: 8,
-      sizeRandomness: 1
-   };
-
    return Juicy.State.extend({
       constructor: function(width, height) {
          var self = this;
@@ -46,12 +27,6 @@ Title = (function() {
 
          // Camera
          this.camera = new THREE.PerspectiveCamera(28, width / height, 0.1, 1000);
-         // this.camera = new THREE.OrthographicCamera(-width / orthoScale, 
-         //                                             width / orthoScale, 
-         //                                             height / orthoScale, 
-         //                                            -height / orthoScale, -500, 1000);
-
-         this.camera.position.y = 0;
          this.camera.position.z = 250;
          this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
@@ -86,17 +61,7 @@ Title = (function() {
                   }
                }
             }
-         
-            self.waveLength = titleImg.width;
          }
-
-         this.timer = 0;
-
-         this.waveDelay = 1;
-         this.waveMoveSpeed = 0.01;
-         this.waveLength = 0;
-
-         this.timePerPulse = 0.1;
       },
 
       key_SPACE: function() {
@@ -104,18 +69,9 @@ Title = (function() {
       },
 
       update: function(dt, game) {
-         this.timer += dt;
-
          this.title.cubeList.forEach(function(block) {
             block.update(dt);
          });
-
-         if (this.waveLength) {
-            var waveTime = this.timer % (this.waveLength * this.waveMoveSpeed + this.waveDelay);
-            var wavePos = waveTime / this.waveMoveSpeed + this.title.min.x;
-         }
-
-         // this.title.rotation.y += dt;
       },
 
       render: function(renderer) {

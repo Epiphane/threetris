@@ -1,8 +1,10 @@
 var Cube = (function() {
    // Load texture
-   var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-   var texture = new THREE.TextureLoader().load("textures/square-outline-textured.png");
-   var material = new THREE.MeshLambertMaterial( { color: 0xffffff, map: texture } );
+   var geometry = new THREE.BoxGeometry(1, 1, 1);
+   var texture = new THREE.TextureLoader().load('textures/square-outline-textured.png');
+       texture.minFilter = THREE.NearestMipMapLinearFilter;
+       texture.maxFilter = THREE.NearestMipMapLinearFilter;
+   var material = new THREE.SpriteMaterial({ color: 0xffffff, map: texture });
 
    var Cube = function(position, mat) {
       THREE.Mesh.call(this, geometry, mat || material);
