@@ -35,15 +35,19 @@ var PieceFactory = (function() {
       new THREE.Color(0, 1, 146/255),
    ];
 
-   PieceFactory.prototype.createRandom = function(cubeGroup) {
+   PieceFactory.prototype.createRandom = function() {
+      var cubeGroups = Array.prototype.slice.call(arguments);
+
       var index = Math.floor(Math.random() * pieces.length);
       var nextPiece = pieces[index];
 
-      cubeGroup.setColor(colors[index]);
+      cubeGroups.forEach(function(cubeGroup) {
+         cubeGroup.setColor(colors[index]);
 
-      for (var i = 0; i < nextPiece.length; i ++) {
-         cubeGroup.addCube.apply(cubeGroup, nextPiece[i]);
-      }
+         for (var i = 0; i < nextPiece.length; i ++) {
+            cubeGroup.addCube.apply(cubeGroup, nextPiece[i]);
+         }
+      });
    };
 
    return PieceFactory;

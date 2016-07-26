@@ -83,7 +83,12 @@ Game = (function() {
          });
 
          this.newThing = new Cube.Group(0xff0000);
+         this.previewThing = new Cube.Group(0xff0000);
+         this.previewThing.material.transparent = true;
+         this.previewThing.material.opacity = 0.25;
+
          this.scene.add(this.newThing);
+         this.scene.add(this.previewThing);
 
          this.pieceFactory = new PieceFactory();
          this.newPiece();
@@ -99,6 +104,7 @@ Game = (function() {
 
          // Backup (so you can press Shift and save a piece for later)
          this.backup = null;
+         this.backupPreview = null;
          this.hasUsedBackup = false;
 
          // Set up the HUD
@@ -124,13 +130,34 @@ Game = (function() {
       },
 
       newPiece: function() {
-         this.pieceFactory.createRandom(this.newThing);
+         var previewThing = this.previewThing;
+         while (previewThing.children.length) {
+            previewThing.remove(previewThing.children[0]);
+         }
+
+         this.pieceFactory.createRandom(this.newThing, this.previewThing);
 
          this.newThing.position.x = 0;
          this.newThing.position.y = 6;
          this.newThing.position.z = 5;
 
          this.hasUsedBackup = false;
+         this.predictFall();
+
+         // TODO This fixes a bug...somehow...?
+         // The preview just like. Won't work unless you rotate it?
+         this.rotateLeft();
+         this.rotateRight();
+      },
+
+      predictFall: function() {
+         this.previewThing.position.copy(this.newThing.position);
+
+         while (!this.previewThing.intersects(this.floor, this.coreRotation)) {
+            this.previewThing.position.y --;
+         }
+
+         this.previewThing.position.y ++;
       },
 
       fall: function() {
@@ -178,12 +205,12 @@ Game = (function() {
          return false;
       },
 
-      wouldCollide: function() {
-         this.newThing.position.y ++;
+      wouldCollide: function(piece) {
+         piece.position.y --;
 
-         var collide = this.newThing.intersects(this.floor, this.coreRotation);
+         var collide = piece.intersects(this.floor, this.coreRotation);
 
-         this.newThing.position.y --;
+         piece.position.y ++;
 
          return collide;
       },
@@ -191,7 +218,7 @@ Game = (function() {
       move: function(dx) {
          this.newThing.position.x += dx;
 
-         if (this.wouldCollide()) {
+         if (this.wouldCollide(this.newThing)) {
             this.fallTimer = this.fallDelay;
          }
          else {
@@ -209,6 +236,8 @@ Game = (function() {
          if (this.newThing.position.x + this.newThing.max.x > 5) {
             this.newThing.position.x = 5 - this.newThing.max.x; 
          }
+
+         this.predictFall();
       },
 
       moveLeft: function() {
@@ -223,22 +252,28 @@ Game = (function() {
 
       rotateLeft: function() {
          this.newThing.rotate(new THREE.Vector3(0, 0, 1), -Math.PI / 2);
+         this.previewThing.rotate(new THREE.Vector3(0, 0, 1), -Math.PI / 2);
          
          this.fallTimer += delayAddOnInput;
 
          while (this.newThing.intersects(this.floor, this.coreRotation)) {
             this.newThing.position.y ++;
          }
+
+         this.predictFall();
       },
 
       rotateRight: function() {
          this.newThing.rotate(new THREE.Vector3(0, 0, 1), Math.PI / 2);
+         this.previewThing.rotate(new THREE.Vector3(0, 0, 1), Math.PI / 2);
          
          this.fallTimer += delayAddOnInput;
 
          while (this.newThing.intersects(this.floor, this.coreRotation)) {
             this.newThing.position.y ++;
          }
+
+         this.predictFall();
       },
 
       testInput: function(game, key, ifPressed) {
@@ -322,21 +357,33 @@ Game = (function() {
       key_SHIFT: function() {
          if (!this.hasUsedBackup) {
             var backup = this.backup;
+            var backupPreview = this.backupPreview;
             this.backup = this.newThing;
+            this.backupPreview = this.previewThing;
 
             if (backup) {
                this.newThing = backup;
                this.newThing.position.x = 0;
                this.newThing.position.y = 8;
                this.newThing.position.z = 5;
+
+               this.previewThing = backupPreview;
             }
             else {
                this.newThing = new Cube.Group(0xff0000);
+               this.previewThing = new Cube.Group(0xff0000);
+               this.previewThing.material.transparent = true;
+               this.previewThing.material.opacity = 0.25;
+
                this.newPiece();
             }
 
             this.scene.add(this.newThing);
+            this.scene.add(this.previewThing);
             this.scene.remove(this.backup);
+            this.scene.remove(this.backupPreview);
+
+            this.predictFall();
 
             this.hasUsedBackup = true;
          }
@@ -380,7 +427,7 @@ Game = (function() {
          }
 
          if (this.fallTimer-- <= 0) {
-            if (!this.wouldCollide() || this.fallTimer <= -6) {
+            if (!this.wouldCollide(this.newThing) || this.fallTimer <= -6) {
                this.fallTimer = this.fallDelay;
                
                this.fall();

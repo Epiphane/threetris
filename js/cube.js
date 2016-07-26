@@ -29,7 +29,8 @@ var Cube = (function() {
    Cube.Group.prototype = Object.create(THREE.Object3D.prototype);
 
    Cube.Group.prototype.setColor = function(color) {
-      this.material = new THREE.MeshLambertMaterial({ color: color || 0xffffff, map: texture });
+      this.material = this.material.clone();
+      this.material.color = color || 0xffffff;
    };
 
    Cube.Group.prototype.rotate = function(axis, degree) {
