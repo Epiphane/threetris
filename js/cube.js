@@ -33,6 +33,18 @@ var Cube = (function() {
       this.material.color = color || 0xffffff;
    };
 
+   Cube.Group.prototype.copy = function(other) {
+      var self = this;
+      
+      self.clear();
+
+      self.setColor(other.material.color);
+      other.children.forEach(function(cube) {
+         // Give me a cube there
+         self.addCube(cube.position.x, cube.position.y, cube.position.z);
+      });
+   };
+
    Cube.Group.prototype.rotate = function(axis, degree) {
       // Reset the map (INEFFICIENT)
       this.min = new THREE.Vector3(0, 0, 0);

@@ -120,6 +120,17 @@ Game = (function() {
 
          this.scene.add(this.hudImage);
 
+         // Setup HUD previews and "backup" piece
+         var hud_piece_scale = 0.75;
+
+         this.hud_save = new Cube.Group(0xff0000);
+         this.pieceFactory.createRandom(this.hud_save);
+
+         this.scene.add(this.hud_save);
+         this.hud_save.position.set(8, 5.5, 12);
+         // this.hud_save.rotation.set(Math.PI / 12, Math.PI / 24, 0);
+         this.hud_save.scale.set(hud_piece_scale, hud_piece_scale, hud_piece_scale);
+      
          window.game = this;
       },
 
@@ -357,6 +368,8 @@ Game = (function() {
             var backupPreview = this.backupPreview;
             this.backup = this.newThing;
             this.backupPreview = this.previewThing;
+
+            this.hud_save.copy(this.backup);
 
             if (backup) {
                this.newThing = backup;
