@@ -150,9 +150,9 @@ Game = (function() {
       },
 
       resetPiece: function() {
-         this.newThing.position.x = -0.5;
+         this.newThing.position.x = -0;
          this.newThing.position.y = TOP;
-         this.newThing.position.z = 4.5;
+         this.newThing.position.z = 5;
 
          this.predictFall();
       },
@@ -285,6 +285,7 @@ Game = (function() {
             this.newThing.position.y ++;
          }
 
+         console.log(this.newThing.min.x);
          this.predictFall();
       },
 

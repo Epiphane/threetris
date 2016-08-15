@@ -52,7 +52,6 @@ var Cube = (function() {
       this.cubes = [];
 
       var size = this.model.size;
-
       var center = new THREE.Vector3((size - 1) / 2, (size - 1) / 2, 0);
 
       for (var i = 0; i < this.children.length; i ++) {
