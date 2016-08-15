@@ -47,7 +47,7 @@ var Cube = (function() {
 
    Cube.Group.prototype.rotate = function(axis, degree) {
       // Reset the map (INEFFICIENT)
-      this.min = new THREE.Vector3(0, 0, 0);
+      this.min = new THREE.Vector3(3, 3, 3);
       this.max = new THREE.Vector3(0, 0, 0);
       this.cubes = [];
 
@@ -66,20 +66,24 @@ var Cube = (function() {
    Cube.Group.prototype.mapCube = function(block) {
       var pos = block.position;
 
-      if (!this.cubes[pos.y])
-         this.cubes[pos.y] = [];
+      var x = Math.floor(pos.x),
+          y = Math.floor(pos.y),
+          z = Math.floor(pos.z);
 
-      if (!this.cubes[pos.y][pos.x])
-         this.cubes[pos.y][pos.x] = [];
+      if (!this.cubes[y])
+         this.cubes[y] = [];
+
+      if (!this.cubes[y][x])
+         this.cubes[y][x] = [];
    
-      this.cubes[pos.y][pos.x][pos.z] = block;
+      this.cubes[y][x][z] = block;
 
-      if (pos.x < this.min.x) this.min.x = pos.x;
-      if (pos.y < this.min.y) this.min.y = pos.y;
-      if (pos.z < this.min.z) this.min.z = pos.z;
-      if (pos.x > this.max.x) this.max.x = pos.x;
-      if (pos.y > this.max.y) this.max.y = pos.y;
-      if (pos.z > this.max.z) this.max.z = pos.z;
+      if (x < this.min.x) this.min.x = x;
+      if (y < this.min.y) this.min.y = y;
+      if (z < this.min.z) this.min.z = z;
+      if (x > this.max.x) this.max.x = x;
+      if (y > this.max.y) this.max.y = y;
+      if (z > this.max.z) this.max.z = z;
    };
 
    Cube.Group.prototype.convertToCube = function(x, y, z, color) {
@@ -120,33 +124,36 @@ var Cube = (function() {
 
    var UP = new THREE.Vector3(0, -1, 0);
 
-   Cube.Group.prototype.hasCubeAt = function(x, y, rotation) {
-      var pos = new THREE.Vector3(parseInt(x), parseInt(y), 5);
-          pos.applyAxisAngle(UP, rotation).round().sub(this.position);
+   Cube.Group.prototype.hasCubeAt = function(_x, _y, rotation) {
+      var pos = new THREE.Vector3(_x, _y, 4.5);
+          pos.applyAxisAngle(UP, rotation).sub(this.position);
       var dpos = new THREE.Vector3(0, 0, -1).applyAxisAngle(UP, rotation).round();
 
+      var x = Math.floor(pos.x),
+          y = Math.round(pos.y),
+          z = Math.floor(pos.z);
+
       for (var i = 0; i <= 10; i ++) {
-         if (!!this.cubes[pos.y] &&
-             !!this.cubes[pos.y][pos.x] &&
-             !!this.cubes[pos.y][pos.x][pos.z]) {
+         if (!!this.cubes[y] &&
+             !!this.cubes[y][x] &&
+             !!this.cubes[y][x][z]) {
             return true;
          }
 
-         pos.add(dpos);
+         x += dpos.x;
+         z += dpos.z;
       }
 
       return false;
    };
 
    Cube.Group.prototype.absorb = function(other, otherRotation) {
-      var halfUnit = new THREE.Vector3(0, 0, 0);//0.5, 0, -0.5);
+      var halfUnit = new THREE.Vector3(0, 0, -0.5);
 
       while (other.children.length > 0) {
          var block = other.children.shift();
          block.position.add(other.position);
-         block.position.sub(halfUnit);
-         block.position.applyAxisAngle(UP, otherRotation).round();
-         block.position.add(halfUnit);
+         block.position.applyAxisAngle(UP, otherRotation);
          block.position.sub(this.position);
 
          this.add(block);
@@ -159,8 +166,8 @@ var Cube = (function() {
    };
 
    Cube.Group.prototype.intersects = function(other, otherRotation) {
-      var rotatedMin = this.min.clone().add(this.position).applyAxisAngle(UP, otherRotation).round();
-      var rotatedMax = this.max.clone().add(this.position).applyAxisAngle(UP, otherRotation).round();
+      var rotatedMin = this.min.clone().add(this.position).applyAxisAngle(UP, otherRotation).floor();
+      var rotatedMax = this.max.clone().add(this.position).applyAxisAngle(UP, otherRotation).floor();
       var otherMin = other.min.clone().add(other.position);
       var otherMax = other.max.clone().add(other.position);
 

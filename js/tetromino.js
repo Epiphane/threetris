@@ -27,7 +27,7 @@ var Tetrominos = (function() {
       {
          name: 'T',
          size: 3,
-         cubes: [[1, 1,-1],[0, 1,-1],[2, 1, 0],[1, 2,-1],
+         cubes: [[1, 1,-1],[0, 1,-1],[2, 1, -1],[1, 2,-1],
                  [1, 1, 0],[1, 1,-2]],
          color: new THREE.Color(1, 0, 219/255) // Purple
       },
@@ -83,8 +83,6 @@ var Tetrominos = (function() {
    // Return a new "bag" of 7 tetrominos, shuffled.
    Tetrominos.randomBag = function() {
       var bag = this.names.map(function(letter) { return Tetrominos[letter]; });
-
-      return bag;
 
       // http://stackoverflow.com/questions/6274339/how-can-i-shuffle-an-array-in-javascript
       // Not even embarassed
