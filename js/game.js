@@ -44,8 +44,11 @@ Game = (function() {
          this.scene.add(directionalLight);
 
          // Create the objects
+         this.container = new THREE.Object3D();
+         this.scene.add(this.container);
+
          this.core = new THREE.Object3D();
-         this.scene.add(this.core);
+         this.container.add(this.core);
 
          this.coreRotation = 0;
          this.rotationSpeed = 10;
@@ -66,12 +69,15 @@ Game = (function() {
          this.floor.position.y = -8;
          this.core.add(this.floor);
 
-         this.floor_width = this.depth = 11;
+         // this.core.position.x = 0.5;
+         // this.core.position.z = -0.5;
+
+         this.floor_width = this.depth = 10;
 
          // Create The base
          for (var i = 0; i < this.floor_width; i ++) {
             for (var j = 0; j < this.depth; j ++) {
-               this.floor.addCube(i - (this.floor_width - 1) / 2, 0, j - (this.depth - 1) / 2);
+               this.floor.addCube(i - this.floor_width / 2, 0, j - this.depth / 2 + 1);
             }
          }
          
@@ -92,7 +98,6 @@ Game = (function() {
          this.scene.add(this.previewThing);
 
          this.pieceFactory = new PieceFactory();
-         this.newPiece();
 
          // Camera
          this.camera = new THREE.OrthographicCamera(-width / orthoScale, 
@@ -121,17 +126,23 @@ Game = (function() {
          this.scene.add(this.hudImage);
 
          // Setup HUD previews and "backup" piece
-         var hud_piece_scale = 0.75;
-
-         this.hud_save = new Cube.Group(0xff0000);
-         this.pieceFactory.createRandom(this.hud_save);
-
+         this.hud_save = new HUDTetromino(-8, 1.5, 12);
          this.scene.add(this.hud_save);
-         this.hud_save.position.set(8, 5.5, 12);
-         // this.hud_save.rotation.set(Math.PI / 12, Math.PI / 24, 0);
-         this.hud_save.scale.set(hud_piece_scale, hud_piece_scale, hud_piece_scale);
-      
-         window.game = this;
+
+         this.previews = [
+            new HUDTetromino(8, 4.5, 12),
+            new HUDTetromino(8, 1.5, 12),
+            new HUDTetromino(8, -1.5, 12),
+            new HUDTetromino(8, -4.5, 12),
+            new HUDTetromino(8, -7.5, 12),
+         ];
+
+         var scene = this.scene
+         this.previews.forEach(function(preview) {
+            scene.add(preview);
+         });
+
+         this.newPiece();
       },
 
       nextLevel: function() {
@@ -155,6 +166,10 @@ Game = (function() {
          this.hasUsedBackup = false;
 
          this.predictFall();
+
+         for (var i = 0; i < this.previews.length; i ++) {
+            this.previews[i].setTetromino(this.pieceFactory.getNext(i));
+         }
       },
 
       predictFall: function() {
@@ -162,6 +177,9 @@ Game = (function() {
 
          while (!this.previewThing.intersects(this.floor, this.coreRotation)) {
             this.previewThing.position.y --;
+
+            if (this.previewThing.position.y < -40)
+               throw new Error('Detecting an infinite preview drop. aborting');
          }
 
          this.previewThing.position.y ++;
@@ -172,7 +190,8 @@ Game = (function() {
          if (this.newThing.intersects(this.floor, this.coreRotation)) {
             this.newThing.position.y ++;
 
-            var y_min = this.newThing.position.y + this.newThing.min.y;
+            // Don't check the bottom level because it's static
+            var y_min = Math.max(this.floor.min.y + this.floor.position.y + 1, this.newThing.position.y + this.newThing.min.y);
             var y_max = this.newThing.position.y + this.newThing.max.y;
             this.floor.absorb(this.newThing, this.coreRotation);
             
@@ -240,8 +259,8 @@ Game = (function() {
             this.newThing.position.x = -5 - this.newThing.min.x; 
          }
 
-         if (this.newThing.position.x + this.newThing.max.x > 5) {
-            this.newThing.position.x = 5 - this.newThing.max.x; 
+         if (this.newThing.position.x + this.newThing.max.x > 4) {
+            this.newThing.position.x = 4 - this.newThing.max.x; 
          }
 
          this.predictFall();
@@ -358,8 +377,11 @@ Game = (function() {
       },
 
       key_SPACE: function() {
-         while (!this.fall())
-            ;
+         var drops = 0;
+         while (!this.fall()) {
+            if (drops++ > 40)
+               throw new Error('Detecthing an infinite drop. aborting');
+         }
       },
 
       key_SHIFT: function() {
@@ -369,7 +391,7 @@ Game = (function() {
             this.backup = this.newThing;
             this.backupPreview = this.previewThing;
 
-            this.hud_save.copy(this.backup);
+            this.hud_save.setTetromino(this.backup.model);
 
             if (backup) {
                this.newThing = backup;
@@ -409,21 +431,21 @@ Game = (function() {
 
          if (this.paused) return;
 
-         if (this.core.rotation.y !== this.coreRotation) {
+         if (this.container.rotation.y !== this.coreRotation) {
             // console.log(this.grid_material.color)
             var pi_4 = Math.PI / 4;
-            var dist = Math.abs(this.core.rotation.y % (Math.PI / 2) - pi_4) / pi_4;
+            var dist = Math.abs(this.container.rotation.y % (Math.PI / 2) - pi_4) / pi_4;
             var scale = Math.pow(dist, 10) * 0.8 + 0.2;
             this.grid_material.color = new THREE.Color(this.grid_color.r * scale, 
                                                        this.grid_color.g * scale, 
                                                        this.grid_color.b * scale);
 
-            var dist = this.rotationSpeed * Math.min(this.coreRotation - this.core.rotation.y, 1);
+            var dist = this.rotationSpeed * Math.min(this.coreRotation - this.container.rotation.y, 1);
 
-            this.core.rotation.y += dist * dt;
+            this.container.rotation.y += dist * dt;
 
-            if (Math.abs(this.coreRotation - this.core.rotation.y) < 0.01) {
-               this.core.rotation.y = this.coreRotation;
+            if (Math.abs(this.coreRotation - this.container.rotation.y) < 0.01) {
+               this.container.rotation.y = this.coreRotation;
                this.grid_material.color = this.grid_color;
             }
          }

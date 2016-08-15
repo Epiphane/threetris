@@ -51,9 +51,13 @@ var Cube = (function() {
       this.max = new THREE.Vector3(0, 0, 0);
       this.cubes = [];
 
+      var size = this.model.size;
+
+      var center = new THREE.Vector3((size - 1) / 2, (size - 1) / 2, 0);
+
       for (var i = 0; i < this.children.length; i ++) {
          var block = this.children[i];
-         block.position.applyAxisAngle(axis, degree).round();
+         block.position.sub(center).applyAxisAngle(axis, degree).add(center).round();
 
          this.mapCube(block);
       }
@@ -121,7 +125,7 @@ var Cube = (function() {
           pos.applyAxisAngle(UP, rotation).round().sub(this.position);
       var dpos = new THREE.Vector3(0, 0, -1).applyAxisAngle(UP, rotation).round();
 
-      for (var i = 0; i <= 11; i ++) {
+      for (var i = 0; i <= 10; i ++) {
          if (!!this.cubes[pos.y] &&
              !!this.cubes[pos.y][pos.x] &&
              !!this.cubes[pos.y][pos.x][pos.z]) {
@@ -135,10 +139,14 @@ var Cube = (function() {
    };
 
    Cube.Group.prototype.absorb = function(other, otherRotation) {
+      var halfUnit = new THREE.Vector3(0, 0, 0);//0.5, 0, -0.5);
+
       while (other.children.length > 0) {
          var block = other.children.shift();
          block.position.add(other.position);
+         block.position.sub(halfUnit);
          block.position.applyAxisAngle(UP, otherRotation).round();
+         block.position.add(halfUnit);
          block.position.sub(this.position);
 
          this.add(block);
