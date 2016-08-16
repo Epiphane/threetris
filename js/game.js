@@ -92,7 +92,6 @@ Game = (function() {
          this.scene.add(this.previewThing);
 
          this.pieceFactory = new PieceFactory();
-         this.newPiece();
 
          // Camera
          this.camera = new THREE.OrthographicCamera(-width / orthoScale, 
@@ -121,15 +120,23 @@ Game = (function() {
          this.scene.add(this.hudImage);
 
          // Setup HUD previews and "backup" piece
-         var hud_piece_scale = 0.75;
-
-         this.hud_save = new Cube.Group(0xff0000);
-         this.pieceFactory.createRandom(this.hud_save);
-
+         this.hud_save = new HUDTetromino(-8, 1, 12);
          this.scene.add(this.hud_save);
-         this.hud_save.position.set(8, 5.5, 12);
-         // this.hud_save.rotation.set(Math.PI / 12, Math.PI / 24, 0);
-         this.hud_save.scale.set(hud_piece_scale, hud_piece_scale, hud_piece_scale);
+
+         this.previews = [
+            new HUDTetromino(8, 4, 12),
+            new HUDTetromino(8, 1, 12),
+            new HUDTetromino(8, -2, 12),
+            new HUDTetromino(8, -5, 12),
+            new HUDTetromino(8, -8, 12),
+         ];
+
+         var scene = this.scene;
+         this.previews.forEach(function(preview) {
+            scene.add(preview);
+         });
+
+         this.newPiece();
       
          window.game = this;
       },
@@ -163,6 +170,10 @@ Game = (function() {
          this.hasUsedBackup = false;
 
          this.predictFall();
+
+         for (var i = 0; i < this.previews.length; i ++) {
+            this.previews[i].setTetromino(this.pieceFactory.getNext(i));
+         }
       },
 
       predictFall: function() {
@@ -384,7 +395,7 @@ Game = (function() {
             this.backup = this.newThing;
             this.backupPreview = this.previewThing;
 
-            this.hud_save.copy(this.backup);
+            this.hud_save.setTetromino(this.backup.model);
 
             if (backup) {
                this.newThing = backup;

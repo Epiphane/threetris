@@ -108,9 +108,11 @@ var Tetrominos = (function() {
       // Set display scale
       tetromino.scale.set(0.5, 0.5, 0.5);
 
+      // Offset it to fit nicely
+      tetromino.position.set(-0.25 - (tetromino.size - 2) * 0.25, 0, 0);
+
       if (tetromino.size % 2 === 0) {
-         // Offset it to fit nicely
-         tetromino.position.set(-0.2, 0, 0);
+         tetromino.position.y += 0.5;
       }
    });
 
