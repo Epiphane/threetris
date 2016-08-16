@@ -65,21 +65,39 @@ var Cube = (function() {
    Cube.Group.prototype.mapCube = function(block) {
       var pos = block.position;
 
-      if (!this.cubes[pos.y])
-         this.cubes[pos.y] = [];
+      var x = Math.floor(Math.round(pos.x * 2) / 2),
+          y = Math.floor(Math.round(pos.y * 2) / 2),
+          z = Math.floor(Math.round(pos.z * 2) / 2);
 
-      if (!this.cubes[pos.y][pos.x])
-         this.cubes[pos.y][pos.x] = [];
+      if (!this.cubes[y])
+         this.cubes[y] = [];
+
+      if (!this.cubes[y][x])
+         this.cubes[y][x] = [];
    
-      this.cubes[pos.y][pos.x][pos.z] = block;
+      this.cubes[y][x][z] = block;
 
-      if (pos.x < this.min.x) this.min.x = pos.x;
-      if (pos.y < this.min.y) this.min.y = pos.y;
-      if (pos.z < this.min.z) this.min.z = pos.z;
-      if (pos.x > this.max.x) this.max.x = pos.x;
-      if (pos.y > this.max.y) this.max.y = pos.y;
-      if (pos.z > this.max.z) this.max.z = pos.z;
+      if (x < this.min.x) this.min.x = x;
+      if (y < this.min.y) this.min.y = y;
+      if (z < this.min.z) this.min.z = z;
+      if (x > this.max.x) this.max.x = x;
+      if (y > this.max.y) this.max.y = y;
+      if (z > this.max.z) this.max.z = z;
    };
+
+   Cube.Group.prototype.getCube = function(pos) {
+      var x = Math.floor(Math.round(pos.x * 2) / 2),
+          y = Math.floor(Math.round(pos.y * 2) / 2),
+          z = Math.floor(Math.round(pos.z * 2) / 2);
+
+      if (!!this.cubes[y] &&
+          !!this.cubes[y][x] &&
+          !!this.cubes[y][x][z]) {
+         return this.cubes[y][x][z];
+      }
+
+      return null;
+   }
 
    Cube.Group.prototype.convertToCube = function(x, y, z, color) {
       var cube;
@@ -120,14 +138,12 @@ var Cube = (function() {
    var UP = new THREE.Vector3(0, -1, 0);
 
    Cube.Group.prototype.hasCubeAt = function(x, y, rotation) {
-      var pos = new THREE.Vector3(parseInt(x), parseInt(y), 5);
-          pos.applyAxisAngle(UP, rotation).round().sub(this.position);
+      var pos = new THREE.Vector3(x, y, 5);
+          pos.applyAxisAngle(UP, rotation).sub(this.position);
       var dpos = new THREE.Vector3(0, 0, -1).applyAxisAngle(UP, rotation).round();
 
       for (var i = 0; i <= 11; i ++) {
-         if (!!this.cubes[pos.y] &&
-             !!this.cubes[pos.y][pos.x] &&
-             !!this.cubes[pos.y][pos.x][pos.z]) {
+         if (this.getCube(pos) !== null) {
             return true;
          }
 
@@ -141,21 +157,21 @@ var Cube = (function() {
       while (other.children.length > 0) {
          var block = other.children.shift();
          block.position.add(other.position);
-         block.position.applyAxisAngle(UP, otherRotation).round();
+         block.position.applyAxisAngle(UP, otherRotation);
          block.position.sub(this.position);
 
          this.add(block);
          this.mapCube(block);
       }
 
-      other.min = new THREE.Vector3(0, 0, 0);
+      other.min = new THREE.Vector3(3, 3, 3);
       other.max = new THREE.Vector3(0, 0, 0);
       other.cubes = [];
    };
 
    Cube.Group.prototype.intersects = function(other, otherRotation) {
-      var rotatedMin = this.min.clone().add(this.position).applyAxisAngle(UP, otherRotation).round();
-      var rotatedMax = this.max.clone().add(this.position).applyAxisAngle(UP, otherRotation).round();
+      var rotatedMin = this.min.clone().add(this.position).applyAxisAngle(UP, otherRotation).floor();
+      var rotatedMax = this.max.clone().add(this.position).applyAxisAngle(UP, otherRotation).floor();
       var otherMin = other.min.clone().add(other.position);
       var otherMax = other.max.clone().add(other.position);
 
@@ -172,8 +188,9 @@ var Cube = (function() {
       }
 
       // Bounding box test first
-      if (rotatedMin.x > otherMax.x || rotatedMin.y > otherMax.y || rotatedMin.z > otherMax.z ||
-          rotatedMax.x < otherMin.x || rotatedMax.y < otherMin.y || rotatedMax.z < otherMin.z) {
+      if (rotatedMin.x > otherMax.x || rotatedMin.y > otherMax.y ||
+          rotatedMax.x < otherMin.x || rotatedMax.y < otherMin.y) {
+         // console.log(rotatedMin, rotatedMax, otherMin, otherMax)
          return false;
       }
 
@@ -201,9 +218,9 @@ var Cube = (function() {
    Cube.LayeredGroup.prototype = Object.create(Cube.Group.prototype);
 
    Cube.LayeredGroup.prototype.add = function(object) {
-      var y = object.position.y;
+      var y = Math.round(object.position.y);
 
-      if (!this.rows[object.position.y]) {
+      if (!this.rows[y]) {
          this.rows[y] = new THREE.Object3D();
          this.rows[y].position.y = y;
          this.rows[y].target_y = y;

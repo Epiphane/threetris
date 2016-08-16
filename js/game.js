@@ -24,6 +24,8 @@ Game = (function() {
 
    return Juicy.State.extend({
       constructor: function(width, height) {
+         window.game = this;
+
          this.scene = new THREE.Scene();
 
          this.width = width;
@@ -66,7 +68,7 @@ Game = (function() {
          this.floor.position.y = -8;
          this.core.add(this.floor);
 
-         this.floor_width = this.depth = 11;
+         this.floor_width = this.depth = 10;
 
          // Create The base
          for (var i = 0; i < this.floor_width; i ++) {
@@ -137,8 +139,6 @@ Game = (function() {
          });
 
          this.newPiece();
-      
-         window.game = this;
       },
 
       nextLevel: function() {
@@ -151,9 +151,9 @@ Game = (function() {
       },
 
       resetPiece: function() {
-         this.newThing.position.x = -0;
+         this.newThing.position.x = -0.5;
          this.newThing.position.y = TOP;
-         this.newThing.position.z = 5;
+         this.newThing.position.z = 4.5;
 
          this.predictFall();
       },
@@ -163,13 +163,9 @@ Game = (function() {
 
          this.pieceFactory.createRandom(this.newThing, this.previewThing);
 
-         this.newThing.position.x = 0;
-         this.newThing.position.y = TOP;
-         this.newThing.position.z = 5;
+         this.resetPiece();
 
          this.hasUsedBackup = false;
-
-         this.predictFall();
 
          for (var i = 0; i < this.previews.length; i ++) {
             this.previews[i].setTetromino(this.pieceFactory.getNext(i));
@@ -204,7 +200,7 @@ Game = (function() {
             for (var y = y_min; y <= y_max; y ++) {
                var solid = true;
 
-               for (var x = -5; x <= 5 && solid; x ++) {
+               for (var x = -4.5; x <= 4.5 && solid; x ++) {
                   solid = this.floor.hasCubeAt(x, y, this.coreRotation);
                }
 
@@ -258,12 +254,13 @@ Game = (function() {
             this.newThing.position.x -= dx;
          }
 
-         if (this.newThing.position.x + this.newThing.min.x < -5) {
-            this.newThing.position.x = -5 - this.newThing.min.x; 
+         if (this.newThing.position.x + this.newThing.min.x < -(this.floor_width - 1) / 2) {
+            this.newThing.position.x = -(this.floor_width - 1) / 2 - this.newThing.min.x; 
          }
 
-         if (this.newThing.position.x + this.newThing.max.x > 5) {
-            this.newThing.position.x = 5 - this.newThing.max.x; 
+
+         if (this.newThing.position.x + this.newThing.max.x > (this.floor_width - 1) / 2) {
+            this.newThing.position.x = (this.floor_width - 1) / 2 - this.newThing.max.x; 
          }
 
          this.predictFall();
@@ -289,7 +286,6 @@ Game = (function() {
             this.newThing.position.y ++;
          }
 
-         console.log(this.newThing.min.x);
          this.predictFall();
       },
 
@@ -399,9 +395,7 @@ Game = (function() {
 
             if (backup) {
                this.newThing = backup;
-               this.newThing.position.x = 0;
-               this.newThing.position.y = TOP;
-               this.newThing.position.z = 5;
+               this.resetPiece();
 
                this.previewThing = backupPreview;
             }
