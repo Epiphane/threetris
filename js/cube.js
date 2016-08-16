@@ -47,16 +47,13 @@ var Cube = (function() {
 
    Cube.Group.prototype.rotate = function(axis, degree) {
       // Reset the map (INEFFICIENT)
-      this.min = new THREE.Vector3(0, 0, 0);
+      this.min = new THREE.Vector3(3, 3, 3);
       this.max = new THREE.Vector3(0, 0, 0);
       this.cubes = [];
 
-<<<<<<< HEAD
       var size = this.model.size;
       var center = new THREE.Vector3((size - 1) / 2, (size - 1) / 2, 0);
 
-=======
->>>>>>> parent of 4b31357... 10 width is proving harder than expected
       for (var i = 0; i < this.children.length; i ++) {
          var block = this.children[i];
          block.position.applyAxisAngle(axis, degree).round();

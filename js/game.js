@@ -170,6 +170,9 @@ Game = (function() {
 
          while (!this.previewThing.intersects(this.floor, this.coreRotation)) {
             this.previewThing.position.y --;
+
+            if (this.previewThing.position.y < -40)     
+               throw new Error('Detecting an infinite preview drop. aborting');
          }
 
          this.previewThing.position.y ++;
@@ -180,7 +183,7 @@ Game = (function() {
          if (this.newThing.intersects(this.floor, this.coreRotation)) {
             this.newThing.position.y ++;
 
-            var y_min = this.newThing.position.y + this.newThing.min.y;
+            var y_min = Math.max(this.floor.position.y + this.floor.min.y + 1, this.newThing.position.y + this.newThing.min.y);
             var y_max = this.newThing.position.y + this.newThing.max.y;
             this.floor.absorb(this.newThing, this.coreRotation);
             
@@ -367,8 +370,11 @@ Game = (function() {
       },
 
       key_SPACE: function() {
-         while (!this.fall())
-            ;
+         var drops = 0;
+         while (!this.fall()) {
+            if (drops++ > 40)     
+               throw new Error('Detecthing an infinite drop. aborting');    
+         }
       },
 
       key_SHIFT: function() {
