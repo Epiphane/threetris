@@ -56,7 +56,7 @@ var Cube = (function() {
 
       for (var i = 0; i < this.children.length; i ++) {
          var block = this.children[i];
-         block.position.applyAxisAngle(axis, degree).round();
+         block.position.sub(center).applyAxisAngle(axis, degree).add(center).round();
 
          this.mapCube(block);
       }
