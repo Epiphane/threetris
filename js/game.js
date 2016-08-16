@@ -24,7 +24,6 @@ Game = (function() {
 
    return Juicy.State.extend({
       constructor: function(width, height) {
-         window.game = this;
          this.scene = new THREE.Scene();
 
          this.width = width;
@@ -45,8 +44,11 @@ Game = (function() {
          this.scene.add(directionalLight);
 
          // Create the objects
+         this.container = new THREE.Object3D();
+         this.scene.add(this.container);
+
          this.core = new THREE.Object3D();
-         this.scene.add(this.core);
+         this.container.add(this.core);
 
          this.coreRotation = 0;
          this.rotationSpeed = 10;
@@ -67,12 +69,15 @@ Game = (function() {
          this.floor.position.y = -8;
          this.core.add(this.floor);
 
+         // this.core.position.x = 0.5;
+         // this.core.position.z = -0.5;
+
          this.floor_width = this.depth = 10;
 
          // Create The base
          for (var i = 0; i < this.floor_width; i ++) {
             for (var j = 0; j < this.depth; j ++) {
-               this.floor.addCube(i - (this.floor_width - 1) / 2, 0, j - (this.depth - 1) / 2);
+               this.floor.addCube(i - this.floor_width / 2, 0, j - this.depth / 2 + 1);
             }
          }
          
@@ -162,9 +167,13 @@ Game = (function() {
 
          this.pieceFactory.createRandom(this.newThing, this.previewThing);
 
-         this.resetPiece();
+         this.newThing.position.x = 0;
+         this.newThing.position.y = TOP;
+         this.newThing.position.z = 5;
 
          this.hasUsedBackup = false;
+
+         this.predictFall();
 
          for (var i = 0; i < this.previews.length; i ++) {
             this.previews[i].setTetromino(this.pieceFactory.getNext(i));
@@ -200,7 +209,7 @@ Game = (function() {
             for (var y = y_min; y <= y_max; y ++) {
                var solid = true;
 
-               for (var x = -4.5; x < 4.5 && solid; x ++) {
+               for (var x = -5; x <= 5 && solid; x ++) {
                   solid = this.floor.hasCubeAt(x, y, this.coreRotation);
                }
 
@@ -254,12 +263,12 @@ Game = (function() {
             this.newThing.position.x -= dx;
          }
 
-         if (this.newThing.position.x + this.newThing.min.x < -4.5) {
-            this.newThing.position.x = -4.5 - this.newThing.min.x; 
+         if (this.newThing.position.x + this.newThing.min.x < -5) {
+            this.newThing.position.x = -5 - this.newThing.min.x; 
          }
 
-         if (this.newThing.position.x + this.newThing.max.x > 4.5) {
-            this.newThing.position.x = 4.5 - this.newThing.max.x; 
+         if (this.newThing.position.x + this.newThing.max.x > 4) {
+            this.newThing.position.x = 4 - this.newThing.max.x; 
          }
 
          this.predictFall();
@@ -395,7 +404,9 @@ Game = (function() {
 
             if (backup) {
                this.newThing = backup;
-               this.resetPiece();
+               this.newThing.position.x = 0;
+               this.newThing.position.y = TOP;
+               this.newThing.position.z = 5;
 
                this.previewThing = backupPreview;
             }
@@ -408,12 +419,12 @@ Game = (function() {
                this.newPiece();
             }
 
-            this.predictFall();
-
             this.scene.add(this.newThing);
             this.scene.add(this.previewThing);
             this.scene.remove(this.backup);
             this.scene.remove(this.backupPreview);
+
+            this.predictFall();
 
             this.hasUsedBackup = true;
          }
@@ -429,21 +440,21 @@ Game = (function() {
 
          if (this.paused) return;
 
-         if (this.core.rotation.y !== this.coreRotation) {
+         if (this.container.rotation.y !== this.coreRotation) {
             // console.log(this.grid_material.color)
             var pi_4 = Math.PI / 4;
-            var dist = Math.abs(this.core.rotation.y % (Math.PI / 2) - pi_4) / pi_4;
+            var dist = Math.abs(this.container.rotation.y % (Math.PI / 2) - pi_4) / pi_4;
             var scale = Math.pow(dist, 10) * 0.8 + 0.2;
             this.grid_material.color = new THREE.Color(this.grid_color.r * scale, 
                                                        this.grid_color.g * scale, 
                                                        this.grid_color.b * scale);
 
-            var dist = this.rotationSpeed * Math.min(this.coreRotation - this.core.rotation.y, 1);
+            var dist = this.rotationSpeed * Math.min(this.coreRotation - this.container.rotation.y, 1);
 
-            this.core.rotation.y += dist * dt;
+            this.container.rotation.y += dist * dt;
 
-            if (Math.abs(this.coreRotation - this.core.rotation.y) < 0.01) {
-               this.core.rotation.y = this.coreRotation;
+            if (Math.abs(this.coreRotation - this.container.rotation.y) < 0.01) {
+               this.container.rotation.y = this.coreRotation;
                this.grid_material.color = this.grid_color;
             }
          }
