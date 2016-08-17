@@ -1,5 +1,5 @@
 (function(document) {
-   window.GAME_WIDTH = 664,
+   window.GAME_WIDTH = 694,
    window.GAME_HEIGHT = 600;
 
    // Initialize scene & camera
