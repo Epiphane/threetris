@@ -105,14 +105,16 @@ var Tetrominos = (function() {
    Tetrominos.names.forEach(function(letter) {
       var tetromino = Tetrominos[letter];
 
+      var scale = 0.7;
+
       // Set display scale
-      tetromino.scale.set(0.5, 0.5, 0.5);
+      tetromino.scale.set(scale, scale, scale);
 
       // Offset it to fit nicely
-      tetromino.position.set(-0.25 - (tetromino.size - 2) * 0.25, 0, 0);
+      tetromino.position.set(-scale / 2 - (tetromino.size - 2) * scale / 2, 0, 0);
 
-      if (tetromino.size % 2 === 0) {
-         tetromino.position.y += 0.5;
+      if (tetromino.size === 2) {
+         tetromino.position.y += scale;
       }
    });
 

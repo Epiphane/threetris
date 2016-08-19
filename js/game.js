@@ -2,11 +2,11 @@
  * Game screen
  */
 Game = (function() {
-   var orthoScale = 60;
+   var orthoScale = 50;
    var delayAddOnInput = 4;
    var tick = 0;
    var inputDelay = {};
-   var TOP = 6;
+   var TOP = 11;
 
    // options passed during each spawned
    options = {
@@ -46,8 +46,12 @@ Game = (function() {
          this.scene.add(directionalLight);
 
          // Create the objects
+         this.container = new THREE.Object3D();
+         this.container.position.y = -0.5;
+         this.scene.add(this.container);
+
          this.core = new THREE.Object3D();
-         this.scene.add(this.core);
+         this.container.add(this.core);
 
          this.coreRotation = 0;
          this.rotationSpeed = 10;
@@ -65,7 +69,7 @@ Game = (function() {
          // Base for the game
          this.floor = new Cube.LayeredGroup();
          this.floor.position.x =  0;
-         this.floor.position.y = -8;
+         this.floor.position.y = -11;
          this.core.add(this.floor);
 
          this.floor_width = this.depth = 10;
@@ -90,8 +94,8 @@ Game = (function() {
          this.previewThing.material.transparent = true;
          this.previewThing.material.opacity = 0.25;
 
-         this.scene.add(this.newThing);
-         this.scene.add(this.previewThing);
+         this.container.add(this.newThing);
+         this.container.add(this.previewThing);
 
          this.pieceFactory = new PieceFactory();
 
@@ -122,15 +126,15 @@ Game = (function() {
          this.scene.add(this.hudImage);
 
          // Setup HUD previews and "backup" piece
-         this.hud_save = new HUDTetromino(-8, 1, 12);
+         this.hud_save = new HUDTetromino(-9, 3.5, 12);
          this.scene.add(this.hud_save);
 
          this.previews = [
-            new HUDTetromino(8, 4, 12),
-            new HUDTetromino(8, 1, 12),
-            new HUDTetromino(8, -2, 12),
-            new HUDTetromino(8, -5, 12),
-            new HUDTetromino(8, -8, 12),
+            new HUDTetromino(9.25, 5, 12),
+            new HUDTetromino(9.25, 1.5, 12),
+            new HUDTetromino(9.25, -2, 12),
+            new HUDTetromino(9.25, -5.5, 12),
+            new HUDTetromino(9.25, -9, 12),
          ];
 
          var scene = this.scene;
@@ -152,7 +156,7 @@ Game = (function() {
 
       resetPiece: function() {
          this.newThing.position.x = -0.5;
-         this.newThing.position.y = TOP;
+         this.newThing.position.y = TOP - this.newThing.max.y;
          this.newThing.position.z = 4.5;
 
          this.predictFall();
@@ -408,10 +412,10 @@ Game = (function() {
                this.newPiece();
             }
 
-            this.scene.add(this.newThing);
-            this.scene.add(this.previewThing);
-            this.scene.remove(this.backup);
-            this.scene.remove(this.backupPreview);
+            this.container.add(this.newThing);
+            this.container.add(this.previewThing);
+            this.container.remove(this.backup);
+            this.container.remove(this.backupPreview);
 
             this.predictFall();
 
