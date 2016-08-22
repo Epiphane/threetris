@@ -60,11 +60,9 @@ Game = (function() {
          this.fallDelay = 70;
 
          this.level = 1;
+         this.goal = 6;
          this.score = 0;
          this.linesRemoved = 0;
-
-         this.levelDiv = document.getElementById('level');
-         this.scoreDiv = document.getElementById('score');
 
          // Base for the game
          this.floor = new Cube.LayeredGroup();
@@ -114,16 +112,24 @@ Game = (function() {
          this.hasUsedBackup = false;
 
          // Set up the HUD
-         var hudImage = new THREE.TextureLoader().load('textures/hud.png');
-             hudImage.minFilter = THREE.NearestFilter;
-             hudImage.maxFilter = THREE.NearestFilter;
-         var hudMaterial = new THREE.SpriteMaterial({ map: hudImage });
-         this.hudImage = new THREE.Sprite(hudMaterial);
-
+         this.hudImage = new ThreeImage('hud.png');
          this.hudImage.position.set(0, 0, 10);
          this.hudImage.scale.set(width * 2 / orthoScale, height * 2 / orthoScale, 1);
-
          this.scene.add(this.hudImage);
+
+         // Set up the level
+         this.hudLevel = new Number();
+         this.hudLevel.position.set(-243/694, -59/694, 11);
+         this.hudLevel.scale.set(19 / 694, 38 / 694, 1);
+         this.hudImage.add(this.hudLevel);
+         this.hudLevel.set(this.level);
+
+         // Set up the level
+         this.hudGoal = new Number();
+         this.hudGoal.position.set(-243/694, -187/694, 11);
+         this.hudGoal.scale.set(19 / 694, 38 / 694, 1);
+         this.hudImage.add(this.hudGoal);
+         this.hudGoal.set(this.goal);
 
          // Setup HUD previews and "backup" piece
          this.hud_save = new HUDTetromino(-9, 3.5, 12);
@@ -146,7 +152,12 @@ Game = (function() {
       },
 
       nextLevel: function() {
-         this.levelDiv.innerHTML = '' + (++this.level);
+         this.hudLevel.set(++this.level);
+      },
+
+      setGoal: function(goal) {
+         this.goal = goal;
+         this.hudGoal.set(this.goal);
       },
 
       addScore: function(score) {
