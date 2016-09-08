@@ -4,6 +4,7 @@
 
    // Initialize scene & camera
    var renderer = new THREE.WebGLRenderer();
+   renderer.setPixelRatio(window.devicePixelRatio);
    renderer.setSize(GAME_WIDTH, GAME_HEIGHT);
    document.body.appendChild(renderer.domElement);
 

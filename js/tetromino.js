@@ -80,17 +80,24 @@ var Tetrominos = (function() {
       Tetrominos.names.push(piece.name);
    });
 
+   var chance = new Chance(Math.floor(Math.random() * 1000));
+   Tetrominos.seed = function(seed) {
+      chance = new Chance(seed);
+   };
+
+   Tetrominos.getSeed = function() {
+      return chance.seed;
+   };
+
    // Return a new "bag" of 7 tetrominos, shuffled.
    Tetrominos.randomBag = function() {
       var bag = this.names.map(function(letter) { return Tetrominos[letter]; });
-
-      return bag;
 
       // http://stackoverflow.com/questions/6274339/how-can-i-shuffle-an-array-in-javascript
       // Not even embarassed
       var j, x, i;
       for (i = bag.length; i; i--) {
-         j = Math.floor(Math.random() * i);
+         j = chance.integer({ min: 0, max: i - 1 });
          x = bag[i - 1];
          bag[i - 1] = bag[j];
          bag[j] = x;

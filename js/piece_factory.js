@@ -18,6 +18,8 @@ var PieceFactory = (function() {
 
          cubeGroup.model = model;
       });
+
+      return model;
    };
 
    PieceFactory.prototype.getNext = function(advance) {

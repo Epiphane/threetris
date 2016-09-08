@@ -1,30 +1,13 @@
 /* 
- * Game screen
+ * Spectate Game screen
+ * aka not active
  */
-Game = (function() {
-   var orthoScale = 50;
-   var delayAddOnInput = 4;
-   var tick = 0;
-   var inputDelay = {};
-   var TOP = 11;
-
-   // options passed during each spawned
-   options = {
-      position: new THREE.Vector3(),
-      positionRandomness: .2,
-      velocity: new THREE.Vector3(0., .05, 0.),
-      velocityRandomness: .2,
-      color: 0xaa88ff,
-      colorRandomness: .2,
-      turbulence: 0,
-      lifetime: 2,
-      size: 8,
-      sizeRandomness: 1
-   };
-
-   return Juicy.State.extend({
+SpectateGame = (function() {
+   return Game.extend({
       constructor: function(width, height) {
          window.game = this;
+
+         this._log = [];
 
          this.scene = new THREE.Scene();
 
@@ -60,7 +43,7 @@ Game = (function() {
          this.fallDelay = 70;
 
          this.level = 1;
-         this.goal = 3;
+         this.goal = 6;
          this.score = 0;
          this.linesRemoved = 0;
 
@@ -152,19 +135,31 @@ Game = (function() {
       },
 
       actions: {
-         LEFT: 1,
-         RIGHT: 2,
-         DROP: 3,
-         HARDDROP: 4,
-         ROT_CCW: 5,
-         ROT_CW: 6,
-         BACKUP: 7,
+         LEFT: 0,
+         RIGHT: 1,
+         DROP: 2,
+         HARDDROP: 3,
+         ROT_CCW: 4,
+         ROT_CW: 5,
+         BACKUP: 6,
+      },
+
+      log: function(log) {
+         this._log.push(log);
+      },
+
+      getLog64: function() {
+         return btoa(this._log.join(''));
+      },
+
+      loadLog64: function(log) {
+
       },
 
       nextLevel: function() {
          this.hudLevel.set(++this.level);
 
-         this.setGoal(3);
+         this.setGoal(6);
       },
 
       setGoal: function(goal) {
@@ -197,6 +192,7 @@ Game = (function() {
 
          for (var i = 0; i < this.previews.length; i ++) {
             this.previews[i].setTetromino(this.pieceFactory.getNext(i));
+            next.push(this.pieceFactory.getNext(i).name);
          }
       },
 
@@ -214,6 +210,7 @@ Game = (function() {
       },
 
       fall: function() {
+         this.log(this.actions.DROP);
          this.newThing.position.y --;
          if (this.newThing.intersects(this.floor, this.coreRotation)) {
             this.newThing.position.y ++;
@@ -295,18 +292,21 @@ Game = (function() {
       },
 
       moveLeft: function() {
+         this.log(this.actions.LEFT);
          this.move(-1);
 
          this.fallTimer += delayAddOnInput;
       },
 
       moveRight: function() {
+         this.log(this.actions.RIGHT);
          this.move(1);
 
          this.fallTimer += delayAddOnInput;
       },
 
       rotateLeft: function() {
+         this.log(this.actions.ROT_CCW);
          this.newThing.rotate(new THREE.Vector3(0, 0, 1), -Math.PI / 2);
          this.previewThing.rotate(new THREE.Vector3(0, 0, 1), -Math.PI / 2);
          
@@ -320,6 +320,7 @@ Game = (function() {
       },
 
       rotateRight: function() {
+         this.log(this.actions.ROT_CW);
          this.newThing.rotate(new THREE.Vector3(0, 0, 1), Math.PI / 2);
          this.previewThing.rotate(new THREE.Vector3(0, 0, 1), Math.PI / 2);
          
@@ -406,24 +407,18 @@ Game = (function() {
          }
       },
 
-      hardDrop: function() {
+      key_SPACE: function() {
          var drops = 0;
          while (!this.fall()) {
+            this.log(this.actions.HARDDROP);
             if (drops++ > 40)     
                throw new Error('Detecthing an infinite drop. aborting');    
          }
       },
 
-      key_SPACE: function() {
-         this.hardDrop();
-      },
-
       key_SHIFT: function() {
-         this.useBackup();
-      },
-
-      useBackup: function() {
          if (!this.hasUsedBackup) {
+            this.log(this.actions.BACKUP);
             var backup = this.backup;
             var backupPreview = this.backupPreview;
             this.backup = this.newThing;

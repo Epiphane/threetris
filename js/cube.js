@@ -9,7 +9,8 @@ var Cube = (function() {
    var Cube = function(position, mat) {
       THREE.Mesh.call(this, geometry, mat || material);
 
-      this.position.add(position);
+      if (position)
+         this.position.add(position);
    };
 
    Cube.prototype = Object.create(THREE.Mesh.prototype);
@@ -108,7 +109,13 @@ var Cube = (function() {
          var material = this.material;
 
          if (color) {
-            material = new THREE.MeshLambertMaterial({ color: color, map: texture });
+            if (color instanceof THREE.Color) {
+               material = new THREE.MeshLambertMaterial({ map: texture, transparent: true });
+               material.color = color;
+            }
+            else {
+               material = new THREE.MeshLambertMaterial({ color: color, map: texture, transparent: true });
+            }
          }
 
          cube = new this.CubeObj(new THREE.Vector3(x, y, z), material);
