@@ -18,14 +18,21 @@ Menu = (function() {
 
    return Screen2D.extend({
       constructor: function(width, height) {
-         var self = this;
-         window.game = this;
          Screen2D.apply(this, arguments);
+
+         var self = this;
+
+         this.titleStart = 15;
+         this.titleDest = 30;
 
          // Create the objects
          this.title = SpecialCube.Group.FromImage('./textures/title.png');
-         this.title.position.y = 30;
+         this.title.position.y = this.titleStart;
          this.scene.add(this.title);
+
+         this.press_space = SpecialCube.Group.FromString('PRESS SPACE');
+         this.press_space.position.y = -30;
+         this.scene.add(this.press_space);
 
          this.menu_items = ['CLASSIC ', 'INFINITE', 'CREDITS '];
 
@@ -42,21 +49,10 @@ Menu = (function() {
 
             menu_object.update(0);
 
-            self.scene.add(menu_object);
             return menu_object;
          });
 
-         function doneAnimating(index) {
-            var next = index + 1;
-            return function() {
-               if (next < self.menu_objects.length) {
-                  self.menu_objects[next].fadeTo(1, 0.6);
-                  self.menu_objects[next].moveTo(new THREE.Vector3(20, -5 - next * 15, 0), 0.6, doneAnimating(next));
-               }
-            }
-         }
-
-         doneAnimating(-1)();
+         this.state = 'title';
 
          this.selector = new Cube.Group();
          this.selector.addCube(0, 0, 0);
@@ -70,27 +66,54 @@ Menu = (function() {
          this.selector_cube.rotation.y = Math.PI / 4;
          this.selector_cube.rotation.x = Math.PI / 8;
          this.selector_cube.float_time = 0;
+         this.selector_cube.material.transparent = true;
+         this.selector_cube.material.opacity = 0;
 
          this.selection = 0;
-         this.selectionAnimationTime = 1.5;
+         this.selectionAnimationTime = 0.75;
+      },
+
+      doneAnimating: function(index) {
+         var self = this;
+         var next = index + 1;
+         return function() {
+            if (next < self.menu_objects.length) {
+               self.scene.add(self.menu_objects[next]);
+               self.menu_objects[next].fadeTo(1, 0.6);
+               self.menu_objects[next].moveTo(new THREE.Vector3(20, -5 - next * 15, 0), 0.6, self.doneAnimating(next));
+            }
+         }
       },
 
       key_SPACE: function() {
          var self = this;
-         this.menu_objects.forEach(function(object, index) {
-            if (index !== self.selection) {
-               self.scene.remove(object);
-            }
-         });
+         if (this.state === 'title') {
+            this.press_space.fadeTo(0, 1);
+            this.title.moveTo(new THREE.Vector3(0, this.titleDest, 0), 1);
 
-         var selected = this.menu_objects[this.selection];
-         selected.scaleTo(new THREE.Vector3(0.8, 0.8, 0.8), 0.05)
-         selected.material.color.setRGB(2, 2, 2);
+            setTimeout(function() {
+               self.state = 'menu';
+               self.doneAnimating(-1)();
+            }, 0.5);
+         }
+         else {
+            this.menu_objects.forEach(function(object, index) {
+               if (index !== self.selection) {
+                  self.scene.remove(object);
+               }
+            });
 
-         this.selector_cube.material.color.setRGB(2, 0.5, 2);
+            Juicy.Sound.play('select');
 
-         this.selected = true;
-         this.finalAnimation = 0;
+            var selected = this.menu_objects[this.selection];
+            selected.scaleTo(new THREE.Vector3(0.8, 0.8, 0.8), 0.05)
+            selected.material.color.setRGB(2, 2, 2);
+
+            this.selector_cube.material.color.setRGB(2, 0.5, 2);
+
+            this.selected = true;
+            this.finalAnimation = 0;
+         }
       },
 
       key_DOWN: function() {
@@ -106,27 +129,38 @@ Menu = (function() {
          Screen2D.prototype.update.apply(this, arguments);
 
          this.title.update(dt);
-         this.menu_objects.forEach(function(object) {
-            object.update(dt);
-         });
 
-         this.selector.position.y = -6 - 15 * this.selection;
+         this.press_space.update(dt);
+         if (this.state !== 'title') {
+            if (this.selector_cube.material.opacity < 1) {
+               this.selector_cube.material.opacity += dt;
 
-         this.selector_cube.float_time += 2 * dt;
-         this.selector_cube.position.y = Math.cos(this.selector_cube.float_time) / 6;
-         this.selector_cube.rotation.y += 0.5 * dt;
-
-         if (this.selected) {
-            if (this.finalAnimation < this.selectionAnimationTime + 0.5) {
-               this.finalAnimation += dt;
-
-               if (this.finalAnimation < this.selectionAnimationTime) {
-                  this.selector_cube.rotation.y += (10 + 10 * Math.sin(Math.PI * this.finalAnimation / this.selectionAnimationTime)) * dt;
-                  this.selector_cube.position.y = Math.sin(Math.PI * this.finalAnimation / this.selectionAnimationTime);
+               if (this.selector_cube.material.opacity > 1) {
+                  this.selector_cube.material.opacity = 1;
                }
             }
-            else {
-               Juicy.Game.setState(new ActiveGame(GAME_WIDTH, GAME_HEIGHT));
+            this.menu_objects.forEach(function(object) {
+               object.update(dt);
+            });
+
+            this.selector.position.y = -6 - 15 * this.selection;
+
+            this.selector_cube.float_time += 2 * dt;
+            this.selector_cube.position.y = Math.cos(this.selector_cube.float_time) / 6;
+            this.selector_cube.rotation.y += 0.5 * dt;
+
+            if (this.selected) {
+               if (this.finalAnimation < this.selectionAnimationTime + 0.5) {
+                  this.finalAnimation += dt;
+
+                  if (this.finalAnimation < this.selectionAnimationTime) {
+                     this.selector_cube.rotation.y += (10 + 10 * Math.sin(Math.PI * this.finalAnimation / this.selectionAnimationTime)) * dt;
+                     this.selector_cube.position.y = Math.sin(Math.PI * this.finalAnimation / this.selectionAnimationTime);
+                  }
+               }
+               else {
+                  Juicy.Game.setState(new ActiveGame(GAME_WIDTH, GAME_HEIGHT));
+               }
             }
          }
       },

@@ -23,5 +23,11 @@
       D: 68,
    });
 
-   Juicy.Game.setState(new Title(GAME_WIDTH, GAME_HEIGHT)).run();
+   // Load sounds
+   Juicy.Sound.load('select', './audio/select2.mp3', false);
+   Juicy.Sound.load('place_piece', './audio/place_piece.mp3', false);
+   Juicy.Sound.load('move', './audio/move_piece.mp3', false, 8);
+   Juicy.Sound.load('rotate', './audio/rotate_piece.mp3', false, 8);
+
+   Juicy.Game.setState(new Menu(GAME_WIDTH, GAME_HEIGHT)).run();
 })(document);

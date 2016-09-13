@@ -250,6 +250,7 @@ Game = (function() {
 
             this.coreRotation += Math.PI / 2;
 
+            Juicy.Sound.play('place_piece');
             this.newPiece();
 
             return true;
@@ -269,6 +270,7 @@ Game = (function() {
       },
 
       move: function(dx) {
+         var moved = true;
          this.newThing.position.x += dx;
 
          if (this.wouldCollide(this.newThing)) {
@@ -279,16 +281,23 @@ Game = (function() {
          }
 
          if (this.newThing.intersects(this.floor, this.coreRotation)) {
+            moved = false;
             this.newThing.position.x -= dx;
          }
 
          if (this.newThing.position.x + this.newThing.min.x < -(this.floor_width - 1) / 2) {
+            moved = false;
             this.newThing.position.x = -(this.floor_width - 1) / 2 - this.newThing.min.x; 
          }
 
 
          if (this.newThing.position.x + this.newThing.max.x > (this.floor_width - 1) / 2) {
+            moved = false;
             this.newThing.position.x = (this.floor_width - 1) / 2 - this.newThing.max.x; 
+         }
+
+         if (moved) {
+            Juicy.Sound.play('move');
          }
 
          this.predictFall();
@@ -316,6 +325,8 @@ Game = (function() {
             this.newThing.position.y ++;
          }
 
+         Juicy.Sound.play('rotate');
+
          this.predictFall();
       },
 
@@ -328,6 +339,8 @@ Game = (function() {
          while (this.newThing.intersects(this.floor, this.coreRotation)) {
             this.newThing.position.y ++;
          }
+
+         Juicy.Sound.play('rotate');
 
          this.predictFall();
       },
