@@ -18,7 +18,10 @@ var Cube = (function() {
    Cube.Group = function(color) {
       THREE.Object3D.call(this);
 
-      this.material = new THREE.MeshLambertMaterial({ color: color || 0xffffff, map: texture });
+      color = new THREE.Color(color || 0xffffff);
+      this.materialCache = {};
+      this.material = new THREE.MeshLambertMaterial({ color: color, map: texture });
+      this.materialCache[color.getHexString()] = this.material;
 
       this.min = new THREE.Vector3(0, 0, 0);
       this.max = new THREE.Vector3(0, 0, 0);
@@ -109,12 +112,19 @@ var Cube = (function() {
          var material = this.material;
 
          if (color) {
-            if (color instanceof THREE.Color) {
+            color = new THREE.Color(color);
+
+            if (this.materialCache) {
+               material = this.materialCache[color.getHexString()];
+            }
+
+            if (!material) {
                material = new THREE.MeshLambertMaterial({ map: texture, transparent: true });
                material.color = color;
-            }
-            else {
-               material = new THREE.MeshLambertMaterial({ color: color, map: texture, transparent: true });
+               console.log('adding color', color);
+
+               if (this.materialCache)
+                  this.materialCache[color.getHexString()] = material;
             }
          }
 

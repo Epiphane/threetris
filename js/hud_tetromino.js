@@ -5,6 +5,7 @@ var HUDTetromino = (function() {
       this.tetromino = new Cube.Group();
 
       this.position.set(x, y, z);
+      this.scale.set(24, 24, 1);
 
       this.add(this.tetromino);
    };

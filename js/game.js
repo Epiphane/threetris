@@ -2,7 +2,7 @@
  * Game screen
  */
 Game = (function() {
-   var orthoScale = 50;
+   var orthoScale = 2;
    var delayAddOnInput = 4;
    var tick = 0;
    var inputDelay = {};
@@ -26,10 +26,14 @@ Game = (function() {
       constructor: function(width, height) {
          window.game = this;
 
-         this.scene = new THREE.Scene();
+         this.hudScene = new THREE.Scene();
 
          this.width = width;
          this.height = height;
+
+         this.scene = new THREE.Object3D();
+         this.scene.scale.set(25, 25, 1);
+         this.hudScene.add(this.scene);
 
          // Create random particle system first
          this.particleSystem = new THREE.GPUParticleSystem({
@@ -39,11 +43,11 @@ Game = (function() {
 
          // Lighting
          var ambientLight = new THREE.AmbientLight(0x606060);
-         this.scene.add(ambientLight);
+         this.hudScene.add(ambientLight);
 
          var directionalLight = new THREE.DirectionalLight(0xffffff);
              directionalLight.position.set(1, 0.75, 1).normalize();
-         this.scene.add(directionalLight);
+         this.hudScene.add(directionalLight);
 
          // Create the objects
          this.container = new THREE.Object3D();
@@ -113,37 +117,35 @@ Game = (function() {
 
          // Set up the HUD
          this.hudImage = new ThreeImage('hud.png');
-         this.hudImage.position.set(0, 0, 10);
-         this.hudImage.scale.set(width * 2 / orthoScale, height * 2 / orthoScale, 1);
-         this.scene.add(this.hudImage);
+         this.hudImage.position.set(0, 0, 100);
+         this.hudImage.setScale(1);
+         this.hudScene.add(this.hudImage);
 
          // Set up the level
          this.hudLevel = new Number();
-         this.hudLevel.position.set(-243/694, -59/694, 11);
-         this.hudLevel.scale.set(19 / 694, 38 / 694, 1);
-         this.hudImage.add(this.hudLevel);
+         this.hudLevel.position.set(-243, -59, 101);
+         this.hudScene.add(this.hudLevel);
          this.hudLevel.set(this.level);
 
          // Set up the level
          this.hudGoal = new Number();
-         this.hudGoal.position.set(-243/694, -187/694, 11);
-         this.hudGoal.scale.set(19 / 694, 38 / 694, 1);
-         this.hudImage.add(this.hudGoal);
+         this.hudGoal.position.set(-243, -187, 101);
+         this.hudScene.add(this.hudGoal);
          this.hudGoal.set(this.goal);
 
          // Setup HUD previews and "backup" piece
-         this.hud_save = new HUDTetromino(-9, 3.5, 12);
-         this.scene.add(this.hud_save);
+         this.hud_save = new HUDTetromino(-225, 90, 102);
+         this.hudScene.add(this.hud_save);
 
          this.previews = [
-            new HUDTetromino(9.25, 5, 12),
-            new HUDTetromino(9.25, 1.5, 12),
-            new HUDTetromino(9.25, -2, 12),
-            new HUDTetromino(9.25, -5.5, 12),
-            new HUDTetromino(9.25, -9, 12),
+            new HUDTetromino(228, 130, 102),
+            new HUDTetromino(228, 40, 102),
+            new HUDTetromino(228, -50, 102),
+            new HUDTetromino(228, -140, 102),
+            new HUDTetromino(228, -230, 102),
          ];
 
-         var scene = this.scene;
+         var scene = this.hudScene;
          this.previews.forEach(function(preview) {
             scene.add(preview);
          });
@@ -517,7 +519,7 @@ Game = (function() {
       },
 
       render: function(renderer) {
-         renderer.render(this.scene, this.camera);
+         renderer.render(this.hudScene, this.camera);
       }
    });
 })();

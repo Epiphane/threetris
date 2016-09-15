@@ -6,14 +6,16 @@ var Screen2D = (function() {
       constructor: function(width, height) {
          this.scene = new THREE.Scene();
 
+         this.imageScale = 128;
+
          this.width = width;
          this.height = height;
 
          // Create random particle system first
-         this.particleSystem = new THREE.GPUParticleSystem({
-            maxParticles: 250000
-         });
-         this.scene.add(this.particleSystem);
+         // this.particleSystem = new THREE.GPUParticleSystem({
+         //    maxParticles: 250000
+         // });
+         // this.scene.add(this.particleSystem);
          this.tick = 0;
 
          // Lighting
@@ -25,11 +27,22 @@ var Screen2D = (function() {
          this.scene.add(directionalLight);
 
          // Camera
+         var orthoScale = 2;
          this.camera = new THREE.PerspectiveCamera(28, width / height, 0.1, 1000);
-         this.camera.position.z = 250;
+         this.camera = new THREE.OrthographicCamera(-this.width / orthoScale, 
+                                                     this.width / orthoScale, 
+                                                     this.height / orthoScale, 
+                                                    -this.height / orthoScale, -500, 1000);
+         this.camera.position.y = 0;
+         this.camera.position.z = 20;
          this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+         // this.camera.position.z = 250;
+         // this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-         this.backdrop = SpecialCube.Group.FromImage('./textures/backdrop.png');
+         // this.backdrop = SpecialCube.Group.FromImage('./textures/backdrop.png');
+         // this.scene.add(this.backdrop);
+         this.backdrop = new ThreeImage('backdrop_rendered.png');
+         this.backdrop.position.set(0, 0, -10);
          this.scene.add(this.backdrop);
       },
 
@@ -37,11 +50,9 @@ var Screen2D = (function() {
          this.tick += dt;
          if (this.tick < 0) this.tick = 0;
 
-         this.particleSystem.update(this.tick);
+         // this.particleSystem.update(this.tick);
 
-         this.backdrop.cubeList.forEach(function(block) {
-            block.update(dt);
-         });
+         // this.backdrop.update(dt);
       },
 
       render: function(renderer) {

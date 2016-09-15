@@ -26,7 +26,8 @@ var Number = (function() {
 
             if (this.numbers.length <= index) {
                 var number = new ThreeImage('numbers.png');
-                    number.position.x = 0.5 - index;
+                    number.position.x = 19 - 19 * index;
+                    number.setScale(1);
 
                 this.numbers.push(number);
                 this.numberContainer.add(number);

@@ -23,9 +23,17 @@
       D: 68,
    });
 
+   if (location.href.indexOf('localhost') >= 0) {
+      var fpsOutput = document.createElement('div');
+      fpsOutput.id = 'debug';
+
+      Juicy.Game.setDebug(fpsOutput);
+      document.body.appendChild(fpsOutput);
+   }
+
    // Load sounds
    Juicy.Sound.load('select', './audio/select2.mp3', false);
-   Juicy.Sound.load('place_piece', './audio/place_piece.mp3', false);
+   Juicy.Sound.load('place_piece', './audio/place_piece.mp3', false, 4);
    Juicy.Sound.load('move', './audio/move_piece.mp3', false, 8);
    Juicy.Sound.load('rotate', './audio/rotate_piece.mp3', false, 8);
 

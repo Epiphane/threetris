@@ -40,6 +40,8 @@ var SpecialCube = (function() {
    SpecialCube.Group = function() {
       Cube.Group.apply(this, arguments);
 
+      this.material.transparent = true;
+
       this.cubeList = [];
       this.CubeObj = SpecialCube;
 
@@ -47,7 +49,7 @@ var SpecialCube = (function() {
       this.dest = new THREE.Vector3();
       this.transition = { pos: 0, length: 0 };
       this.fadeDest = 1;
-      this.fadeStart = this.opacity = 1;
+      this.fadeStart = this.material.opacity = 1;
       this.fading = { pos: 0, length: 0 };
       this.scaleStart = this.scale.clone();
       this.scaleDest = new THREE.Vector3();
@@ -58,8 +60,6 @@ var SpecialCube = (function() {
 
    SpecialCube.Group.prototype.addCube = function(x, y, z, color) {
       var cube = this.convertToCube(x, y, z, color);
-
-      var pos_x = cube.position.x;
 
       this.add(cube);
       
@@ -79,7 +79,7 @@ var SpecialCube = (function() {
 
    SpecialCube.Group.prototype.fadeTo = function(final, time, onComplete) {
       this.fadeDest = final;
-      this.fadeStart = this.opacity;
+      this.fadeStart = this.material.opacity;
       this.fading.pos = 0;
       this.fading.length = time || 1;
 
@@ -101,17 +101,17 @@ var SpecialCube = (function() {
 
    SpecialCube.Group.prototype.update = function(dt) {
       var self = this;
-      this.cubeList.forEach(function(block) {
-         block.update(dt);
+      // this.cubeList.forEach(function(block) {
+      //    block.update(dt);
 
-         block.material.opacity = self.opacity;
-      });
+      //    block.material.opacity = self.opacity;
+      // });
 
       if (this.fading.pos < this.fading.length) {
          this.fading.pos = Math.min(this.fading.pos + dt, this.fading.length);
          var percentage = Math.pow(this.fading.pos / this.fading.length, 1);
 
-         this.opacity = percentage * this.fadeDest + (1 - percentage) * this.fadeStart;
+         this.material.opacity = percentage * this.fadeDest + (1 - percentage) * this.fadeStart;
 
          if (this.onCompleteFade && percentage === 1) {
             this.onCompleteFade();
@@ -230,10 +230,6 @@ var SpecialCube = (function() {
    };
 
    function FormCubeGroupFromString(group, string, options) {
-      options = options || {};
-      options.left = options.left || false;
-      options.color = options.color || group.material.color;
-
       string = string.toUpperCase();
       var dx = options.left ? 0 : -((font.width + 1) * string.length) / 2;
       var dy = -font.height / 2;
@@ -248,13 +244,17 @@ var SpecialCube = (function() {
             var x = coord[0];
             var y = coord[1];
 
-            group.addCube(x + dx + ndx * (font.width + 1), y + dy, 0, options.color);
+            group.addCube(x + dx + ndx * (font.width + 1), y + dy, 0);
          });
       }
    }
 
    SpecialCube.Group.FromString = function(string, options) {
-      var group = new SpecialCube.Group(0xffffff);
+      options = options || {};
+      options.left = options.left || false;
+      options.color = options.color || 0xffffff;
+
+      var group = new SpecialCube.Group(options.color);
 
       if (fontImage.ready) {
          FormCubeGroupFromString(group, string, options);
