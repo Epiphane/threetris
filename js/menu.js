@@ -44,7 +44,15 @@ Menu = (function() {
             menu_object.position.x = 150;
             menu_object.position.y = -10 - index * self.menuItemSpacing;
             menu_object.material.opacity = 0;
-            menu_object.index = index;
+
+            menu_object.update(0);
+
+            return menu_object;
+         });
+
+         this.sub_classic_objects = ['intro', 'skip'].map(function(string, index) {
+            var menu_object = new ThreeImage(string + '.png');
+            menu_object.material.opacity = 0;
 
             menu_object.update(0);
 
@@ -72,6 +80,17 @@ Menu = (function() {
          this.selectionAnimationTime = 0.75;
       },
 
+      showSelected: function(menu_object) {
+         Juicy.Sound.play('select');
+
+         menu_object.material.color.setRGB(2, 2, 2);
+
+         this.selector_cube.material.color.setRGB(2, 0.5, 2);
+
+         this.selected = true;
+         this.finalAnimation = 0;
+      },
+
       key_SPACE: function() {
          var self = this;
          if (this.state === 'title') {
@@ -91,23 +110,36 @@ Menu = (function() {
                }
             });
          }
-         else {
+         else if (this.state === 'menu') {
             this.menu_objects.forEach(function(object, index) {
                if (index !== self.selection) {
                   self.scene.remove(object);
                }
             });
 
-            Juicy.Sound.play('select');
+            // Classic has a sub menu
+            if (this.selection === 0) {
+               this.sub_classic_objects.forEach(function(object, index) {
+                  self.scene.add(object);
 
-            var selected = this.menu_objects[this.selection];
-            // selected.scaleTo(new THREE.Vector3(0.8, 0.8, 0.8), 0.05)
-            selected.material.color.setRGB(2, 2, 2);
+                  object.position.copy(self.menu_objects[0].position);
+                  object.material.opacity = 1;
+               });
 
-            this.selector_cube.material.color.setRGB(2, 0.5, 2);
+               this.state === 'submenu';
+            }
+            else {
+               this.showSelected(this.menu_objects[this.selection]);
+            }
+         }
+         else if (this.state === 'submenu') {
+            this.sub_classic_objects.forEach(function(object, index) {
+               if (index !== self.selection) {
+                  self.scene.remove(object);
+               }
+            });
 
-            this.selected = true;
-            this.finalAnimation = 0;
+            this.showSelected(this.sub_classic_objects[this.selection]);
          }
       },
 
@@ -138,7 +170,7 @@ Menu = (function() {
                object.update(dt);
             });
 
-            this.selector.position.y = -6 - 20 * this.selection;
+            this.selector.position.y = -6 - this.menuItemSpacing * this.selection;
 
             this.selector_cube.float_time += 2 * dt;
             this.selector_cube.position.y = Math.cos(this.selector_cube.float_time) / 6;

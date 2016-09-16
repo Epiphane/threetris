@@ -137,6 +137,11 @@ Game = (function() {
          this.hud_save = new HUDTetromino(-225, 90, 102);
          this.hudScene.add(this.hud_save);
 
+         this.game_over = new ThreeImage('game_over.png');
+         this.game_over.position.set(1, -14, 199);
+         this.game_over.material.opacity = 0;
+         this.hudScene.add(this.game_over);
+
          this.previews = [
             new HUDTetromino(228, 130, 102),
             new HUDTetromino(228, 40, 102),
@@ -185,6 +190,17 @@ Game = (function() {
          this.newThing.position.y = TOP - this.newThing.max.y;
          this.newThing.position.z = 4.5;
 
+         if (this.newThing.intersects(this.floor, this.coreRotation)) {
+            this.newThing.position.y ++;
+         }
+
+         // GG
+         if (this.newThing.intersects(this.floor, this.coreRotation)) {
+            this.paused = true;
+
+            this.game_over.fadeTo(0.97);
+         }
+
          this.predictFall();
       },
 
@@ -227,6 +243,7 @@ Game = (function() {
             var linesRemoved = 0;
 
             // Check each level
+            console.log(y_max);
             for (var y = y_min; y <= y_max; y ++) {
                var solid = true;
 
@@ -479,8 +496,7 @@ Game = (function() {
          this.particleSystem.update(tick);
 
          this.floor.update(dt);
-
-         if (this.paused) return;
+         this.game_over.update(dt);
 
          if (this.core.rotation.y !== this.coreRotation) {
             // console.log(this.grid_material.color)
@@ -500,6 +516,8 @@ Game = (function() {
                this.grid_material.color = this.grid_color;
             }
          }
+
+         if (this.paused) return;
 
          this.testInput(game, 'LEFT', this.moveLeft);
          this.testInput(game, 'RIGHT', this.moveRight);
