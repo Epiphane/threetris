@@ -85,7 +85,10 @@ Menu = (function() {
 
          menu_object.material.color.setRGB(2, 2, 2);
 
-         this.selector_cube.material.color.setRGB(2, 0.5, 2);
+         if (this.state === 'submenu')
+            this.selector_cube.material.color.setRGB(2, 2, 0.5);
+         else
+            this.selector_cube.material.color.setRGB(2, 0.5, 2);
 
          this.selected = true;
          this.finalAnimation = 0;
@@ -100,13 +103,13 @@ Menu = (function() {
                self.state = 'menu';
 
                for (var i = 0; i < self.menu_objects.length; i ++) {
-                  setTimeout((function(i) {
+                  self.scene.add(self.menu_objects[i]);
+                  setTimeout((function(i, obj) {
                      return function() {
-                        self.scene.add(self.menu_objects[i]);
-                        self.menu_objects[i].fadeTo(1, 0.6);
-                        self.menu_objects[i].moveTo(new THREE.Vector3(100, -5 - i * self.menuItemSpacing, 0), 0.6);
+                        obj.fadeTo(1, 0.6);
+                        obj.moveTo(new THREE.Vector3(100, -5 - i * self.menuItemSpacing, 0), 0.6);
                      }
-                  })(i), i * 300);
+                  })(i, self.menu_objects[i]), i * 300);
                }
             });
          }
@@ -117,16 +120,33 @@ Menu = (function() {
                }
             });
 
+            // Change the menu itself heheh
+            var rootObj = this.menu_objects[0];
+            this.menu_objects = [];
+
             // Classic has a sub menu
             if (this.selection === 0) {
                this.sub_classic_objects.forEach(function(object, index) {
                   self.scene.add(object);
 
-                  object.position.copy(self.menu_objects[0].position);
-                  object.material.opacity = 1;
+                  object.position.copy(rootObj.position);
+                  object.position.x -= 30;
+                  object.material.opacity = 0;
+
+                  index ++;
+                  var moveTime = 0.125;
+                  object.moveTo(object.position.clone().add(new THREE.Vector3(0, -index * 60 - 20, 0)), index * moveTime);
+                  object.fadeTo(1, index * moveTime);
+
+                  // Add it to the list of menu items
+                  self.menu_objects.push(object);
                });
 
-               this.state === 'submenu';
+               this.menuItemSpacing = 60;
+               this.selector.position.x += 70;
+               this.selector_cube.material.color.setRGB(0.5, 1, 0);
+
+               this.state = 'submenu';
             }
             else {
                this.showSelected(this.menu_objects[this.selection]);
@@ -144,12 +164,12 @@ Menu = (function() {
       },
 
       key_down_DOWN: function() {
-         this.selection = (this.selection + 1) % this.menu_items.length;
+         this.selection = (this.selection + 1) % this.menu_objects.length;
       },
 
       key_down_UP: function() {
          if (--this.selection < 0)
-            this.selection += this.menu_items.length;
+            this.selection += this.menu_objects.length;
       },
 
       update: function(dt, game) {
@@ -171,6 +191,9 @@ Menu = (function() {
             });
 
             this.selector.position.y = -6 - this.menuItemSpacing * this.selection;
+            if (this.state === 'submenu') {
+               this.selector.position.y -= 80;
+            }
 
             this.selector_cube.float_time += 2 * dt;
             this.selector_cube.position.y = Math.cos(this.selector_cube.float_time) / 6;
