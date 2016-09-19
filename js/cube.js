@@ -205,8 +205,8 @@ var Cube = (function() {
       }
 
       // Bounding box test first
-      if (rotatedMin.x > otherMax.x || rotatedMin.y > otherMax.y ||
-          rotatedMax.x < otherMin.x || rotatedMax.y < otherMin.y) {
+      if (rotatedMin.x > otherMax.x || rotatedMin.y > otherMax.y + 1 ||
+          rotatedMax.x < otherMin.x || rotatedMax.y < otherMin.y - 1) {
          // console.log(rotatedMin, rotatedMax, otherMin, otherMax)
          return false;
       }
