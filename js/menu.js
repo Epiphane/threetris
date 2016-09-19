@@ -196,11 +196,11 @@ Menu = (function() {
 
                // Intro
                if (this.selection === 0) {
-                  this.nextState = new ActiveGame(GAME_WIDTH, GAME_HEIGHT);
+                  this.nextState = new IntroGame(GAME_WIDTH, GAME_HEIGHT);
                }
                // Skip
                else {
-                  this.nextState = new ActiveGame(GAME_WIDTH, GAME_HEIGHT);
+                  this.nextState = new ClassicGame(GAME_WIDTH, GAME_HEIGHT);
                }
                this.showSelected(this.sub_classic_objects[this.selection]);
             }
