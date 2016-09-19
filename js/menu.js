@@ -23,6 +23,8 @@ Menu = (function() {
          var self = this;
          window.game = this;
 
+         this.ControlsState = new Controls(GAME_WIDTH, GAME_HEIGHT, this);
+
          this.titleStart = 70;
          this.titleDest = 170;
          this.menuItemSpacing = 100;
@@ -151,13 +153,18 @@ Menu = (function() {
                // Infinite
                if (this.selection === 1) {
                   this.nextState = new InfiniteGame(GAME_WIDTH, GAME_HEIGHT);
+                  this.showSelected(this.menu_objects[this.selection]);
                }
-               // Credits (Controls?)
+               // Controls
                else {
-                  this.nextState = new InfiniteGame(GAME_WIDTH, GAME_HEIGHT);
-               }
+                  this.menu_objects.forEach(function(object, index) {
+                     object.lerpDest.opacity = 1;
+                     object.material.opacity = 1;
+                  });
 
-               this.showSelected(this.menu_objects[this.selection]);
+                  this.selection = 0;
+                  Juicy.Game.setState(this.ControlsState);
+               }
             }
          }
          else if (this.state === 'submenu') {

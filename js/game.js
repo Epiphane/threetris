@@ -3,7 +3,7 @@
  */
 Game = (function() {
    var orthoScale = 2;
-   var delayAddOnInput = 4;
+   var delayAddOnInput = 1;
    var tick = 0;
    var inputDelay = {};
    var TOP = 11;
@@ -67,6 +67,9 @@ Game = (function() {
          this.goal = 3;
          this.score = 0;
          this.linesRemoved = 0;
+
+         // Don't let you hard drop within 0.5 seconds of new piece on accident
+         this.dropBlock = 0;
 
          // Base for the game
          this.floor = new Cube.LayeredGroup();
@@ -171,8 +174,12 @@ Game = (function() {
       nextLevel: function() {
          this.hudLevel.set(++this.level);
 
-         this.setGoal(3);
+         this.setGoal(this.getGoalForLevel(this.level));
          this.reduceFallDelay();
+      },
+
+      getGoalForLevel: function(level) {
+         return 3;
       },
 
       setGoal: function(goal) {
@@ -213,6 +220,7 @@ Game = (function() {
          this.resetPiece();
 
          this.hasUsedBackup = false;
+         this.dropBlock = 0.5;
 
          for (var i = 0; i < this.previews.length; i ++) {
             this.previews[i].setTetromino(this.pieceFactory.getNext(i));
@@ -298,7 +306,7 @@ Game = (function() {
             this.fallTimer = this.fallDelay;
          }
          else {
-            this.fallTimer += delayAddOnInput;
+            this.fallTimer += Math.min(this.fallDelay / 3, delayAddOnInput);
          }
 
          if (this.newThing.intersects(this.floor, this.coreRotation)) {
@@ -327,20 +335,20 @@ Game = (function() {
       moveLeft: function() {
          this.move(-1);
 
-         this.fallTimer += delayAddOnInput;
+         this.fallTimer += Math.min(this.fallDelay / 3, delayAddOnInput);
       },
 
       moveRight: function() {
          this.move(1);
 
-         this.fallTimer += delayAddOnInput;
+         this.fallTimer += Math.min(this.fallDelay / 3, delayAddOnInput);
       },
 
       rotateLeft: function() {
          this.newThing.rotate(new THREE.Vector3(0, 0, 1), -Math.PI / 2);
          this.previewThing.rotate(new THREE.Vector3(0, 0, 1), -Math.PI / 2);
          
-         this.fallTimer += delayAddOnInput;
+         this.fallTimer += Math.min(this.fallDelay / 3, delayAddOnInput);
 
          while (this.newThing.intersects(this.floor, this.coreRotation)) {
             this.newThing.position.y ++;
@@ -355,7 +363,7 @@ Game = (function() {
          this.newThing.rotate(new THREE.Vector3(0, 0, 1), Math.PI / 2);
          this.previewThing.rotate(new THREE.Vector3(0, 0, 1), Math.PI / 2);
          
-         this.fallTimer += delayAddOnInput;
+         this.fallTimer += Math.min(this.fallDelay / 3, delayAddOnInput);
 
          while (this.newThing.intersects(this.floor, this.coreRotation)) {
             this.newThing.position.y ++;
@@ -441,10 +449,14 @@ Game = (function() {
       },
 
       hardDrop: function() {
-         var drops = 0;
-         while (!this.fall()) {
-            if (drops++ > 40)     
-               throw new Error('Detecthing an infinite drop. aborting');    
+         if (this.dropBlock <= 0) {
+            var drops = 0;
+            while (!this.fall()) {
+               if (drops++ > 40)     
+                  throw new Error('Detecthing an infinite drop. aborting');    
+            }
+            this.hardDrop();
+            this.dropBlock = 0;
          }
       },
 
@@ -494,6 +506,9 @@ Game = (function() {
       update: function(dt, game) {
          tick += dt;
          if (tick < 0) tick = 0;
+
+         if (this.dropBlock > 0)
+            this.dropBlock -= dt;
 
          this.particleSystem.update(tick);
 
