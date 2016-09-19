@@ -38,7 +38,7 @@ Menu = (function() {
 
          this.menu_items = ['classic', 'infinite', 'controls'];
 
-         this.menu_objects = this.menu_items.map(function(string, index) {
+         this.menu_objects = this.base_menu_objects = this.menu_items.map(function(string, index) {
             var menu_object = new ThreeImage(string + '.png');//SpecialCube.Group.FromString(string);
 
             menu_object.position.x = 150;
@@ -50,11 +50,15 @@ Menu = (function() {
             return menu_object;
          });
 
-         this.sub_classic_objects = ['intro', 'skip'].map(function(string, index) {
+         this.sub_classic_objects = ['intro', 'skip', 'back'].map(function(string, index) {
             var menu_object = new ThreeImage(string + '.png');
             menu_object.material.opacity = 0;
 
             menu_object.update(0);
+
+            menu_object.position.copy(self.base_menu_objects[0].position);
+            menu_object.position.x -= 30;
+            menu_object.material.opacity = 0;
 
             return menu_object;
          });
@@ -104,19 +108,21 @@ Menu = (function() {
 
                for (var i = 0; i < self.menu_objects.length; i ++) {
                   self.scene.add(self.menu_objects[i]);
-                  setTimeout((function(i, obj) {
+                  (function(i, obj) {
                      return function() {
-                        obj.fadeTo(1, 0.6);
-                        obj.moveTo(new THREE.Vector3(100, -5 - i * self.menuItemSpacing, 0), 0.6);
+                        obj.material.opacity = -0.3 * i;
+                        obj.fadeTo(1, 0.6 + 0.3 * i);
+                        obj.moveTo(new THREE.Vector3(100, -5 - i * self.menuItemSpacing, 0), 0.6 + 0.3 * i);
                      }
-                  })(i, self.menu_objects[i]), i * 300);
+                  })(i, self.menu_objects[i])();
                }
             });
          }
          else if (this.state === 'menu') {
             this.menu_objects.forEach(function(object, index) {
                if (index !== self.selection) {
-                  self.scene.remove(object);
+                  object.lerpDest.opacity = 0;
+                  object.material.opacity = 0;
                }
             });
 
@@ -124,22 +130,15 @@ Menu = (function() {
             if (this.selection === 0) {
                // Change the menu itself heheh
                var rootObj = this.menu_objects[0];
-               this.menu_objects = [];
+               this.menu_objects = this.sub_classic_objects;
                
                this.sub_classic_objects.forEach(function(object, index) {
                   self.scene.add(object);
 
-                  object.position.copy(rootObj.position);
-                  object.position.x -= 30;
-                  object.material.opacity = 0;
-
                   index ++;
                   var moveTime = 0.125;
-                  object.moveTo(object.position.clone().add(new THREE.Vector3(0, -index * 60 - 20, 0)), index * moveTime);
+                  object.moveTo(rootObj.position.clone().add(new THREE.Vector3(0, -index * 60 - 20, 0)), index * moveTime);
                   object.fadeTo(1, index * moveTime);
-
-                  // Add it to the list of menu items
-                  self.menu_objects.push(object);
                });
 
                this.menuItemSpacing = 60;
@@ -162,29 +161,56 @@ Menu = (function() {
             }
          }
          else if (this.state === 'submenu') {
-            this.sub_classic_objects.forEach(function(object, index) {
-               if (index !== self.selection) {
-                  self.scene.remove(object);
-               }
-            });
+            // Back
+            if (this.selection === 2) {
+               this.state = 'menu';
+               
+               this.menuItemSpacing = 100;
+               this.selector.position.x -= 70;
+               this.selector_cube.material.color.setRGB(1, 0, 1);
+               this.selection = 0;
 
-            // Intro
-            if (this.selection === 0) {
-               this.nextState = new ActiveGame(GAME_WIDTH, GAME_HEIGHT);
+               for (var i = 0; i < this.menu_objects.length; i ++) {
+                  this.menu_objects[i].material.opacity = 0;
+               }
+
+               this.menu_objects = this.base_menu_objects
+               for (var i = 0; i < this.menu_objects.length; i ++) {
+                  this.menu_objects[i].material.opacity = 1;
+                  this.menu_objects[i].position.set(100, -5 - i * this.menuItemSpacing, 0);
+               }
             }
-            // Skip
             else {
-               this.nextState = new ActiveGame(GAME_WIDTH, GAME_HEIGHT);
+               this.sub_classic_objects.forEach(function(object, index) {
+                  if (index !== self.selection) {
+                     self.scene.remove(object);
+                  }
+               });
+
+               // Intro
+               if (this.selection === 0) {
+                  this.nextState = new ActiveGame(GAME_WIDTH, GAME_HEIGHT);
+               }
+               // Skip
+               else {
+                  this.nextState = new ActiveGame(GAME_WIDTH, GAME_HEIGHT);
+               }
+               this.showSelected(this.sub_classic_objects[this.selection]);
             }
-            this.showSelected(this.sub_classic_objects[this.selection]);
          }
       },
 
       key_down_DOWN: function() {
+         if (this.state !== 'menu' && this.state !== 'submenu')
+            return;
+
          this.selection = (this.selection + 1) % this.menu_objects.length;
       },
 
       key_down_UP: function() {
+         if (this.state !== 'menu' && this.state !== 'submenu')
+            return;
+
          if (--this.selection < 0)
             this.selection += this.menu_objects.length;
       },
@@ -203,7 +229,10 @@ Menu = (function() {
                   this.selector_cube.material.opacity = 1;
                }
             }
-            this.menu_objects.forEach(function(object) {
+            this.sub_classic_objects.forEach(function(object) {
+               object.update(dt);
+            });
+            this.base_menu_objects.forEach(function(object) {
                object.update(dt);
             });
 
