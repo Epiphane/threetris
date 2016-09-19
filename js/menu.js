@@ -36,7 +36,7 @@ Menu = (function() {
          this.press_space.position.y = -120;
          this.scene.add(this.press_space);
 
-         this.menu_items = ['classic', 'infinite', 'credits'];
+         this.menu_items = ['classic', 'infinite', 'controls'];
 
          this.menu_objects = this.menu_items.map(function(string, index) {
             var menu_object = new ThreeImage(string + '.png');//SpecialCube.Group.FromString(string);
@@ -120,12 +120,12 @@ Menu = (function() {
                }
             });
 
-            // Change the menu itself heheh
-            var rootObj = this.menu_objects[0];
-            this.menu_objects = [];
-
             // Classic has a sub menu
             if (this.selection === 0) {
+               // Change the menu itself heheh
+               var rootObj = this.menu_objects[0];
+               this.menu_objects = [];
+               
                this.sub_classic_objects.forEach(function(object, index) {
                   self.scene.add(object);
 
@@ -149,6 +149,15 @@ Menu = (function() {
                this.state = 'submenu';
             }
             else {
+               // Infinite
+               if (this.selection === 1) {
+                  this.nextState = new InfiniteGame(GAME_WIDTH, GAME_HEIGHT);
+               }
+               // Credits (Controls?)
+               else {
+                  this.nextState = new InfiniteGame(GAME_WIDTH, GAME_HEIGHT);
+               }
+
                this.showSelected(this.menu_objects[this.selection]);
             }
          }
@@ -159,6 +168,14 @@ Menu = (function() {
                }
             });
 
+            // Intro
+            if (this.selection === 0) {
+               this.nextState = new ActiveGame(GAME_WIDTH, GAME_HEIGHT);
+            }
+            // Skip
+            else {
+               this.nextState = new ActiveGame(GAME_WIDTH, GAME_HEIGHT);
+            }
             this.showSelected(this.sub_classic_objects[this.selection]);
          }
       },
@@ -209,7 +226,7 @@ Menu = (function() {
                   }
                }
                else {
-                  Juicy.Game.setState(new ActiveGame(GAME_WIDTH, GAME_HEIGHT));
+                  Juicy.Game.setState(this.nextState);
                }
             }
          }

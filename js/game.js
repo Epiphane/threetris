@@ -172,6 +172,7 @@ Game = (function() {
          this.hudLevel.set(++this.level);
 
          this.setGoal(3);
+         this.reduceFallDelay();
       },
 
       setGoal: function(goal) {
@@ -231,6 +232,12 @@ Game = (function() {
          this.previewThing.position.y ++;
       },
 
+      reduceFallDelay: function() {
+         if (this.fallDelay > 6) {
+            this.fallDelay = Math.floor(this.fallDelay * 6 / 7);
+         }
+      },
+
       fall: function() {
          this.newThing.position.y --;
          if (this.newThing.intersects(this.floor, this.coreRotation)) {
@@ -243,7 +250,6 @@ Game = (function() {
             var linesRemoved = 0;
 
             // Check each level
-            console.log(y_max);
             for (var y = y_min; y <= y_max; y ++) {
                var solid = true;
 
@@ -257,10 +263,6 @@ Game = (function() {
 
                   if (this.setGoal(this.goal - 1) <= 0) {
                      this.nextLevel();
-
-                     if (this.fallDelay > 6) {
-                        this.fallDelay = Math.floor(this.fallDelay * 6 / 7);
-                     }
                   }
                }
             }
