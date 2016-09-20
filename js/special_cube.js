@@ -229,23 +229,35 @@ var SpecialCube = (function() {
       }
    };
 
+   SpecialCube.Group.AddLetter = function(group, letter, dx, dy) {
+      if (letter === ' ') return;
+
+      var todo = function() {
+         var letterData = font[letter.toUpperCase()];
+
+         letterData.forEach(function(coord) {
+            var x = coord[0];
+            var y = coord[1];
+
+            group.addCube(x + dx, y + dy, 0);
+         });
+      };
+
+      if (fontImage.ready) {
+         todo();
+      }
+      else {
+         fontImage.onReady.push(todo);
+      }
+   }
+
    function FormCubeGroupFromString(group, string, options) {
       string = string.toUpperCase();
       var dx = options.left ? 0 : -((font.width + 1) * string.length) / 2;
       var dy = -font.height / 2;
 
       for (var ndx = string.length - 1; ndx >= 0; ndx --) {
-         var letterData = font[string[ndx]];
-
-         if (string[ndx] === ' ')
-            continue;
-
-         letterData.forEach(function(coord) {
-            var x = coord[0];
-            var y = coord[1];
-
-            group.addCube(x + dx + ndx * (font.width + 1), y + dy, 0);
-         });
+         SpecialCube.Group.AddLetter(group, font[string[ndx]], dx + ndx * (font.width + 1), dy);
       }
    }
 
