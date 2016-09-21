@@ -4,7 +4,7 @@ var Cube = (function() {
    var texture = new THREE.TextureLoader().load('textures/square-outline-textured.png');
        texture.minFilter = THREE.NearestMipMapLinearFilter;
        texture.maxFilter = THREE.NearestMipMapLinearFilter;
-   var material = new THREE.SpriteMaterial({ color: 0xffffff, map: texture });
+   var material = new THREE.MeshLambertMaterial({ color: 0xffffff, map: texture });
 
    var Cube = function(position, mat) {
       THREE.Mesh.call(this, geometry, mat || material);
@@ -111,7 +111,7 @@ var Cube = (function() {
       else {
          var material = this.material;
 
-         if (color) {
+         if (color || color === 0x000000) {
             color = new THREE.Color(color);
 
             if (this.materialCache) {
@@ -121,7 +121,7 @@ var Cube = (function() {
             if (!material) {
                material = new THREE.MeshLambertMaterial({ map: texture, transparent: true });
                material.color = color;
-               console.log('adding color', color);
+               // console.log('adding color', color);
 
                if (this.materialCache)
                   this.materialCache[color.getHexString()] = material;
@@ -140,6 +140,8 @@ var Cube = (function() {
       this.add(cube);
 
       this.mapCube(cube);
+
+      return cube;
    };
 
    Cube.Group.prototype.clear = function() {

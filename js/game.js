@@ -24,9 +24,9 @@ Game = (function() {
 
    return Juicy.State.extend({
       constructor: function(width, height) {
-         window.game = this;
-
          this.hudScene = new THREE.Scene();
+
+         this.inputEnabled = true;
 
          this.width = width;
          this.height = height;
@@ -246,6 +246,8 @@ Game = (function() {
          }
       },
 
+      onBlockPlaced: function() {},
+
       fall: function() {
          this.newThing.position.y --;
          if (this.newThing.intersects(this.floor, this.coreRotation)) {
@@ -281,6 +283,8 @@ Game = (function() {
 
             Juicy.Sound.play('place_piece');
             this.newPiece();
+
+            this.onBlockPlaced();
 
             return true;
          }
@@ -503,6 +507,8 @@ Game = (function() {
          }
       },
 
+      onFinishRotation: function() {},
+
       update: function(dt, game) {
          tick += dt;
          if (tick < 0) tick = 0;
@@ -531,17 +537,21 @@ Game = (function() {
             if (Math.abs(this.coreRotation - this.core.rotation.y) < 0.01) {
                this.core.rotation.y = this.coreRotation;
                this.grid_material.color = this.grid_color;
+
+               this.onFinishRotation();
             }
          }
 
          if (this.paused) return;
 
-         this.testInput(game, 'LEFT', this.moveLeft);
-         this.testInput(game, 'RIGHT', this.moveRight);
-         this.testInput(game, 'UP', this.rotateLeft);
+         if (this.inputEnabled) {
+            this.testInput(game, 'LEFT', this.moveLeft);
+            this.testInput(game, 'RIGHT', this.moveRight);
+            this.testInput(game, 'UP', this.rotateLeft);
 
-         if (game.keyDown('DOWN')) {
-            this.fallTimer -= 5;
+            if (game.keyDown('DOWN')) {
+               this.fallTimer -= 5;
+            }
          }
 
          if (this.fallTimer-- <= 0) {

@@ -186,10 +186,11 @@ var SpecialCube = (function() {
    };
 
    var fontImage = new Image();
-       fontImage.src = './textures/font.png';
+       fontImage.src = './textures/font_128.png';
        fontImage.ready = false;
        fontImage.onReady = [];
    var font = { width: 0, height: 0 };
+   window.font = font;
 
    fontImage.onload = function() {  
       var canvas = document.createElement('canvas');
@@ -198,17 +199,18 @@ var SpecialCube = (function() {
       canvas.getContext('2d').drawImage(fontImage, 0, 0, fontImage.width, fontImage.height);
 
       var pixelData = canvas.getContext('2d').getImageData(0, 0, fontImage.width, fontImage.height).data;
-      var letter_height = font.height = fontImage.height;
-      var letter_width  = font.width  = fontImage.width / 26;
+      var letter_height = font.height = fontImage.height / 8;
+      var letter_width  = font.width  = fontImage.width / 16;
 
       var A = 'A'.charCodeAt(0);
-      for (var char = 0; char < 26; char ++) {
+      for (var char = 0; char < 128; char ++) {
          var letter = String.fromCharCode(A + char);
          var letterData = [];
 
+         var char_tl = (char % 16) * letter_width + Math.floor(char / 16) * fontImage.width * letter_height;
          for (var y = 0; y < letter_height; y ++) {
             for (var x = 0; x < letter_width; x ++) {
-               var ndx = (x + char * letter_width + y * fontImage.width) * 4;
+               var ndx = (char_tl + x + y * fontImage.width) * 4;
                var color = 0;
                    color += pixelData[ndx] << 16;
                    color += pixelData[ndx + 1] << 8;
@@ -220,7 +222,7 @@ var SpecialCube = (function() {
             }
          }
 
-         font[letter] = letterData;
+         font[char] = letterData;
       }
 
       fontImage.ready = true;
@@ -233,7 +235,7 @@ var SpecialCube = (function() {
       if (letter === ' ') return;
 
       var todo = function() {
-         var letterData = font[letter.toUpperCase()];
+         var letterData = font[letter.charCodeAt(0)];
 
          letterData.forEach(function(coord) {
             var x = coord[0];
@@ -251,13 +253,43 @@ var SpecialCube = (function() {
       }
    }
 
+   SpecialCube.Group.GetCubesForString = function(string, callback) {
+      if (!fontImage.ready) {
+         fontImage.onReady.push(function() {
+            SpecialCube.Group.GetCubesForString(string, callback);
+         });
+         return;
+      }
+      var cubes = [];
+
+      string = string.toUpperCase();
+      var dy = -font.height / 2;
+
+      for (var ndx = 0; ndx < string.length; ndx ++) {
+         var letter = string[ndx];
+         if (letter === ' ') continue;
+
+         var letterData = font[letter.charCodeAt(0)];
+
+         letterData.forEach(function(coord) {
+            var x = coord[0];
+            var y = coord[1];
+
+            cubes.push(new Cube(new THREE.Vector3(x + ndx * (font.width + 1), y + dy, 0)));
+            // cubes.push([x + ndx * (font.width + 1), y + dy, 0]);
+         });
+      }
+
+      callback(cubes);
+   };
+
    function FormCubeGroupFromString(group, string, options) {
       string = string.toUpperCase();
       var dx = options.left ? 0 : -((font.width + 1) * string.length) / 2;
-      var dy = -font.height / 2;
+      var dy = -height / 2;
 
       for (var ndx = string.length - 1; ndx >= 0; ndx --) {
-         SpecialCube.Group.AddLetter(group, font[string[ndx]], dx + ndx * (font.width + 1), dy);
+         SpecialCube.Group.AddLetter(group, font[string.charCodeAt(ndx)], dx + ndx * (font.width + 1), dy);
       }
    }
 
