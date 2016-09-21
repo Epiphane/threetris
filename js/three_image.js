@@ -56,6 +56,10 @@ var ThreeImage = (function() {
       this.setScale(this.imageScale);
    };
 
+   ThreeImage.prototype.isAnimating = function(dt) {
+      return (this.lerp.pos < this.lerp.length);
+   }
+
    ThreeImage.prototype.update = function(dt) {
       if (this.lerp.pos < this.lerp.length) {
          this.lerp.pos = Math.min(this.lerp.pos + dt, this.lerp.length);

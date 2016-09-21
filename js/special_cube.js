@@ -286,10 +286,10 @@ var SpecialCube = (function() {
    function FormCubeGroupFromString(group, string, options) {
       string = string.toUpperCase();
       var dx = options.left ? 0 : -((font.width + 1) * string.length) / 2;
-      var dy = -height / 2;
+      var dy = -font.height / 2;
 
       for (var ndx = string.length - 1; ndx >= 0; ndx --) {
-         SpecialCube.Group.AddLetter(group, font[string.charCodeAt(ndx)], dx + ndx * (font.width + 1), dy);
+         SpecialCube.Group.AddLetter(group, string[ndx], dx + ndx * (font.width + 1), dy);
       }
    }
 

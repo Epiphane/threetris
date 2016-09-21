@@ -16,6 +16,21 @@ var Number = (function() {
         this.value = value;
 
         var index = 0;
+        if (value === 0) {
+            if (this.numbers.length <= index) {
+                var number = new ThreeImage('numbers.png');
+                    number.position.x = 19 - 19 * index;
+                    number.setScale(1);
+
+                this.numbers.push(number);
+                this.numberContainer.add(number);
+            }
+
+            this.numbers[0].setUVs(1 / 20, 0, 2 / 20, 1);
+
+            index ++;
+        }
+
         while (value > 0) {
             var remainder = value % 10;
             value = Math.floor(value / 10);
@@ -43,7 +58,7 @@ var Number = (function() {
             this.numberContainer.remove(number);
         }
 
-        this.numberContainer.position.x = this.numbers.length / 2;
+        this.numberContainer.position.x = 18 * this.numbers.length / 2;
     };
 
     return Number;

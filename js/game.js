@@ -24,6 +24,8 @@ Game = (function() {
 
    return Juicy.State.extend({
       constructor: function(width, height) {
+         window.game = this;
+
          this.hudScene = new THREE.Scene();
 
          this.inputEnabled = true;
@@ -64,8 +66,9 @@ Game = (function() {
          this.fallDelay = 70;
 
          this.level = 1;
-         this.goal = 3;
+         this.goal = this.getGoalForLevel(1);
          this.score = 0;
+         this.stats = {};
          this.linesRemoved = 0;
 
          // Don't let you hard drop within 0.5 seconds of new piece on accident
@@ -136,6 +139,12 @@ Game = (function() {
          this.hudScene.add(this.hudGoal);
          this.hudGoal.set(this.goal);
 
+         // Set up the level
+         this.hudScore = new Number();
+         this.hudScore.position.set(37, 311, 101);
+         this.hudScene.add(this.hudScore);
+         this.hudScore.set(this.score);
+
          // Setup HUD previews and "backup" piece
          this.hud_save = new HUDTetromino(-225, 90, 102);
          this.hudScene.add(this.hud_save);
@@ -144,6 +153,11 @@ Game = (function() {
          this.game_over.position.set(1, -14, 199);
          this.game_over.material.opacity = 0;
          this.hudScene.add(this.game_over);
+
+         this.you_win = new ThreeImage('you_win.png');
+         this.you_win.position.set(1, -14, 199);
+         this.you_win.material.opacity = 0;
+         this.hudScene.add(this.you_win);
 
          this.previews = [
             new HUDTetromino(228, 130, 102),
@@ -191,6 +205,8 @@ Game = (function() {
 
       addScore: function(score) {
          this.score += score;
+
+         this.hudScore.set(this.score);
       },
 
       resetPiece: function() {
@@ -204,7 +220,7 @@ Game = (function() {
 
          // GG
          if (this.newThing.intersects(this.floor, this.coreRotation)) {
-            this.paused = true;
+            this.gameEnded = true;
 
             this.game_over.fadeTo(0.97);
          }
@@ -465,7 +481,12 @@ Game = (function() {
       },
 
       key_SPACE: function() {
-         this.hardDrop();
+         if (!this.gameEnded) {
+            this.hardDrop();
+         }
+         else if (!this.game_over.isAnimating() && !this.you_win.isAnimating()) {
+            Juicy.Game.setState(new Score(GAME_WIDTH, GAME_HEIGHT, this.gameType, this.score, this.stats));
+         }
       },
 
       key_SHIFT: function() {
@@ -520,6 +541,7 @@ Game = (function() {
 
          this.floor.update(dt);
          this.game_over.update(dt);
+         this.you_win.update(dt);
 
          if (this.core.rotation.y !== this.coreRotation) {
             // console.log(this.grid_material.color)
@@ -542,11 +564,13 @@ Game = (function() {
             }
          }
 
-         if (this.paused) return;
+         if (this.paused || this.gameEnded) return;
 
          if (this.inputEnabled) {
             this.testInput(game, 'LEFT', this.moveLeft);
             this.testInput(game, 'RIGHT', this.moveRight);
+            this.testInput(game, 'A', this.rotateRight);
+            this.testInput(game, 'D', this.rotateLeft);
             this.testInput(game, 'UP', this.rotateLeft);
 
             if (game.keyDown('DOWN')) {

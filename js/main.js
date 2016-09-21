@@ -21,6 +21,8 @@
       A: 65,
       S: 83,
       D: 68,
+      Z: 90,
+      X: 88
    });
 
    if (location.href.indexOf('localhost') >= 0) {
