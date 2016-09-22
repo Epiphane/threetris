@@ -87,6 +87,7 @@ ActiveGame = (function() {
             return Game.prototype.hardDrop.apply(this, arguments);
          }
          else if (!this.game_over.isAnimating() && !this.you_win.isAnimating()) {
+            Juicy.Sound.stop('twister');
             Juicy.Game.setState(new Score(GAME_WIDTH, GAME_HEIGHT, this.gameType, this.score, this.stats));
          }
       },

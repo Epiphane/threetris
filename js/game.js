@@ -65,6 +65,11 @@ Game = (function() {
          this.fallTimer = 0;
          this.fallDelay = 70;
 
+         this.combo = 0;
+         this.t_spin = false;
+         this.last_move = false;
+         this.difficult = false;
+
          this.level = 1;
          this.goal = this.getGoalForLevel(1);
          this.score = 0;
@@ -173,6 +178,8 @@ Game = (function() {
          });
 
          this.newPiece();
+
+         this.playing = false;
       },
 
       actions: {
@@ -190,6 +197,8 @@ Game = (function() {
 
          this.setGoal(this.getGoalForLevel(this.level));
          this.reduceFallDelay();
+
+         Juicy.Sound.play('levelup');
       },
 
       getGoalForLevel: function(level) {
@@ -275,6 +284,27 @@ Game = (function() {
             
             var linesRemoved = 0;
 
+            // T-Spin?
+            if (this.newThing.model.name === 'T' &&
+               (this.last_move === this.actions.ROT_CW || this.last_move === this.actions.ROT_CCW)) {
+               var corners = 0;
+               if (this.floor.hasCubeAt(this.newThing.position.x, this.newThing.position.y, this.coreRotation))
+                  corners ++;
+               if (this.floor.hasCubeAt(this.newThing.position.x + 2, this.newThing.position.y, this.coreRotation))
+                  corners ++;
+               if (this.floor.hasCubeAt(this.newThing.position.x, this.newThing.position.y + 2, this.coreRotation))
+                  corners ++;
+               if (this.floor.hasCubeAt(this.newThing.position.x + 2, this.newThing.position.y + 2, this.coreRotation))
+                  corners ++;
+
+               if (corners >= 3) {
+                  this.t_spin = true;
+               }
+            }
+            else {
+               this.t_spin = false;
+            }
+
             // Check each level
             for (var y = y_min; y <= y_max; y ++) {
                var solid = true;
@@ -293,7 +323,49 @@ Game = (function() {
                }
             }
 
-            this.addScore(Math.ceil(Math.pow(linesRemoved, 3/2)) * 10);
+            if (linesRemoved > 0) {
+               var yay = linesRemoved - 1 + this.combo;
+               if (yay > 4) yay = 4;
+               Juicy.Sound.play('combo_' + yay);
+
+               var points = 50 * this.level * this.combo++;
+               var last_difficult = this.difficult;
+
+               this.difficult = false;
+               if (!this.t_spin) {
+                  if (linesRemoved === 1)
+                     points += 100 * this.level;
+                  else if (linesRemoved === 2)
+                     points += 300 * this.level;
+                  else if (linesRemoved === 3)
+                     points += 500 * this.level;
+                  else if (linesRemoved === 4) {
+                     points += 800 * this.level;
+                     this.difficult = true;
+                  }
+               }
+               else {
+                  this.difficult = true;
+                  if (linesRemoved === 1)
+                     points += 800 * this.level;
+                  else if (linesRemoved === 2)
+                     points += 1200 * this.level;
+                  else if (linesRemoved === 3)
+                     points += 1600 * this.level;
+               }
+
+               if (last_difficult && this.difficult) {
+                  points *= 3/2;
+               }
+
+               this.addScore(points);
+            }
+            else {
+               if (this.t_spin)
+                  points += 400 * this.level;
+
+               this.combo = 0;
+            }
 
             this.coreRotation += Math.PI / 2;
 
@@ -304,6 +376,8 @@ Game = (function() {
 
             return true;
          }
+
+         this.last_move = this.actions.DROP;
 
          return false;
       },
@@ -354,17 +428,21 @@ Game = (function() {
 
       moveLeft: function() {
          this.move(-1);
+         this.last_move = this.actions.LEFT;
 
          this.fallTimer += Math.min(this.fallDelay / 3, delayAddOnInput);
       },
 
       moveRight: function() {
          this.move(1);
+         this.last_move = this.actions.RIGHT;
 
          this.fallTimer += Math.min(this.fallDelay / 3, delayAddOnInput);
       },
 
       rotateLeft: function() {
+         this.last_move = this.actions.ROT_CW;
+
          this.newThing.rotate(new THREE.Vector3(0, 0, 1), -Math.PI / 2);
          this.previewThing.rotate(new THREE.Vector3(0, 0, 1), -Math.PI / 2);
          
@@ -380,6 +458,8 @@ Game = (function() {
       },
 
       rotateRight: function() {
+         this.last_move = this.actions.ROT_CCW;
+
          this.newThing.rotate(new THREE.Vector3(0, 0, 1), Math.PI / 2);
          this.previewThing.rotate(new THREE.Vector3(0, 0, 1), Math.PI / 2);
          
@@ -449,22 +529,12 @@ Game = (function() {
 
       key_ESC: function() {
          this.paused = !this.paused;
-         return;
 
          if (this.paused) {
-            this.camera = new THREE.PerspectiveCamera(28, this.width / this.height, 0.1, 1000);
-            this.camera.position.y = 5;
-            this.camera.position.z = 40;
-            this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+            Juicy.Sound.pause('twister');
          }
          else {
-            this.camera = new THREE.OrthographicCamera(-this.width / orthoScale, 
-                                                        this.width / orthoScale, 
-                                                        this.height / orthoScale, 
-                                                       -this.height / orthoScale, -500, 1000);
-            this.camera.position.y = 0;
-            this.camera.position.z = 20;
-            this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+            Juicy.Sound.play('twister');
          }
       },
 
@@ -475,6 +545,8 @@ Game = (function() {
                if (drops++ > 40)     
                   throw new Error('Detecthing an infinite drop. aborting');    
             }
+            // Points fam
+            this.addScore(drops * 2);
             this.hardDrop();
             this.dropBlock = 0;
          }
@@ -485,6 +557,7 @@ Game = (function() {
             this.hardDrop();
          }
          else if (!this.game_over.isAnimating() && !this.you_win.isAnimating()) {
+            Juicy.Sound.stop('twister');
             Juicy.Game.setState(new Score(GAME_WIDTH, GAME_HEIGHT, this.gameType, this.score, this.stats));
          }
       },
@@ -531,6 +604,12 @@ Game = (function() {
       onFinishRotation: function() {},
 
       update: function(dt, game) {
+         if (!this.playing) {
+            this.playing = true;
+
+            Juicy.Sound.play('twister');
+         }
+
          tick += dt;
          if (tick < 0) tick = 0;
 
@@ -579,7 +658,7 @@ Game = (function() {
          }
 
          if (this.fallTimer-- <= 0) {
-            if (!this.wouldCollide(this.newThing) || this.fallTimer <= -6) {
+            if (!this.wouldCollide(this.newThing) || this.fallTimer <= -30) {
                this.fallTimer = this.fallDelay;
                
                this.fall();

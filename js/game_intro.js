@@ -233,6 +233,7 @@ IntroGame = (function() {
       advanceDialog: function() {
          var next = this.dialog[this.dialogIndex];
 
+         this.doneAnimating = false;
          if (typeof(next) === 'string' || next instanceof Array) {
             this.say(next);
          }

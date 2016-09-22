@@ -1,4 +1,4 @@
-(function(document) {
+$(document).ready(function() {
    window.GAME_WIDTH = 694,
    window.GAME_HEIGHT = 694;
 
@@ -38,6 +38,17 @@
    Juicy.Sound.load('place_piece', './audio/place_piece.mp3', false, 4);
    Juicy.Sound.load('move', './audio/move_piece.mp3', false, 8);
    Juicy.Sound.load('rotate', './audio/rotate_piece.mp3', false, 8);
+   Juicy.Sound.load('twister', './audio/Twister Tetris2.mp3', true, 1, 0.35);
+   Juicy.Sound.load('combo_0', './audio/combo_0.mp3', false, 2);
+   Juicy.Sound.load('combo_1', './audio/combo_1.mp3', false, 2);
+   Juicy.Sound.load('combo_2', './audio/combo_2.mp3', false, 2);
+   Juicy.Sound.load('combo_3', './audio/combo_3.mp3', false, 2);
+   Juicy.Sound.load('combo_4', './audio/combo_4.mp3', false, 2);
+   Juicy.Sound.load('levelup', './audio/Coin01.mp3', false);
 
    Juicy.Game.setState(new Menu(GAME_WIDTH, GAME_HEIGHT)).run();
-})(document);
+
+   $('#report-bug').click(function() {
+      Juicy.Game.setState(new ReportBug(GAME_WIDTH, GAME_HEIGHT, Juicy.Game.getState()));
+   });
+});
