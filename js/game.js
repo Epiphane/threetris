@@ -180,6 +180,10 @@ Game = (function() {
          this.newPiece();
 
          this.playing = false;
+
+         $.post('http://thomassteinke.com/__em.php', {
+            play: true
+         });
       },
 
       actions: {

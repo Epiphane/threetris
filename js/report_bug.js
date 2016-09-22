@@ -98,8 +98,8 @@ ReportBug = (function() {
          $('body').append(this.resumeButton);
          $('body').append(this.restartButton);
 
-         $.post('http://thomassteinke.net/__em.php', {
-            message: this.submission.val()
+         $.post('http://thomassteinke.com/__em.php', {
+            message: this.submission.val() + (this.prevState instanceof ActiveGame ? this.prevState.getSave() : '')
          });
 
          this.scene.remove(this.what_happened);

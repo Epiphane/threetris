@@ -33,6 +33,10 @@ $(document).ready(function() {
       document.body.appendChild(fpsOutput);
    }
 
+   $.post('http://thomassteinke.com/__em.php', {
+      view: true
+   });
+
    // Load sounds
    Juicy.Sound.load('select', './audio/select2.mp3', false);
    Juicy.Sound.load('place_piece', './audio/place_piece.mp3', false, 4);
