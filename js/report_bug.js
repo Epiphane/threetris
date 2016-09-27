@@ -98,7 +98,7 @@ ReportBug = (function() {
          $('body').append(this.resumeButton);
          $('body').append(this.restartButton);
 
-         $.post('http://thomassteinke.com/__em.php', {
+         $.post('http://thomassteinke.com/threetris/__em.php', {
             message: this.submission.val() + (this.prevState instanceof ActiveGame ? this.prevState.getSave() : '')
          });
 

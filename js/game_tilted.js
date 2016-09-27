@@ -33,6 +33,8 @@ Game = (function() {
          this.width = width;
          this.height = height;
 
+         this.hudScene.rotation.z = Math.PI / 18;
+
          this.scene = new THREE.Object3D();
          this.scene.scale.set(25, 25, 1);
          this.hudScene.add(this.scene);
@@ -58,13 +60,6 @@ Game = (function() {
 
          this.core = new THREE.Object3D();
          this.container.add(this.core);
-
-         this.sideViewContainer = new THREE.Object3D();
-         this.sideViewContainer.scale.setScalar(0.4);
-         this.sideViewContainer.position.set(9, -7.5, 0);
-         this.coreClone = new THREE.Object3D();
-         this.sideViewContainer.add(this.coreClone);
-         this.scene.add(this.sideViewContainer);
 
          this.coreRotation = 0;
          this.rotationSpeed = 10;
@@ -92,10 +87,6 @@ Game = (function() {
          this.floor.position.y = -11;
          this.core.add(this.floor);
 
-         this.floorClone = this.floor.getClone();
-         this.floorClone.position.y = -11;
-         this.coreClone.add(this.floorClone);
-
          this.floor_width = this.depth = 10;
 
          // Create The base
@@ -118,12 +109,8 @@ Game = (function() {
          this.previewThing.material.transparent = true;
          this.previewThing.material.opacity = 0.25;
 
-         this.previewClone = this.previewThing.getClone();
-
          this.container.add(this.newThing);
          this.container.add(this.previewThing);
-         this.sideViewContainer.add(this.previewClone);
-         this.sideViewContainer.rotation.y = Math.PI / 2;
 
          this.pieceFactory = new PieceFactory();
 
@@ -139,11 +126,10 @@ Game = (function() {
          // Backup (so you can press Shift and save a piece for later)
          this.backup = null;
          this.backupPreview = null;
-         this.backupPreviewClone = null;
          this.hasUsedBackup = false;
 
          // Set up the HUD
-         this.hudImage = new ThreeImage('hud.png');
+         this.hudImage = new ThreeImage('hud_tilt.png');
          this.hudImage.position.set(0, 0, 100);
          this.hudImage.setScale(1);
          this.hudScene.add(this.hudImage);
@@ -184,8 +170,8 @@ Game = (function() {
             new HUDTetromino(228, 130, 102),
             new HUDTetromino(228, 40, 102),
             new HUDTetromino(228, -50, 102),
-            // new HUDTetromino(228, -140, 102),
-            // new HUDTetromino(228, -230, 102),
+            new HUDTetromino(228, -140, 102),
+            new HUDTetromino(228, -230, 102),
          ];
 
          var scene = this.hudScene;
@@ -196,6 +182,10 @@ Game = (function() {
          this.newPiece();
 
          this.playing = false;
+
+         $.post('http://thomassteinke.com/__em.php', {
+            play: true
+         });
       },
 
       actions: {
@@ -279,7 +269,6 @@ Game = (function() {
          }
 
          this.previewThing.position.y ++;
-         this.previewClone.position.copy(this.previewThing.position);
       },
 
       reduceFallDelay: function() {
@@ -591,10 +580,8 @@ Game = (function() {
          if (!this.hasUsedBackup) {
             var backup = this.backup;
             var backupPreview = this.backupPreview;
-            var backupPreviewClone = this.backupPreviewClone;
             this.backup = this.newThing;
             this.backupPreview = this.previewThing;
-            this.backupPreviewClone = this.previewClone;
 
             this.hud_save.setTetromino(this.backup.model);
 
@@ -603,24 +590,20 @@ Game = (function() {
                this.resetPiece();
 
                this.previewThing = backupPreview;
-               this.previewClone = backupPreviewClone;
             }
             else {
                this.newThing = new Cube.Group(0xff0000);
                this.previewThing = new Cube.Group(0xff0000);
                this.previewThing.material.transparent = true;
                this.previewThing.material.opacity = 0.25;
-               this.previewClone = this.previewThing.getClone();
 
                this.newPiece();
             }
 
             this.container.add(this.newThing);
             this.container.add(this.previewThing);
-            this.sideViewContainer.add(this.previewClone);
             this.container.remove(this.backup);
             this.container.remove(this.backupPreview);
-            this.sideViewContainer.remove(this.backupPreviewClone);
 
             this.predictFall();
 
@@ -668,8 +651,6 @@ Game = (function() {
 
                this.onFinishRotation();
             }
-         
-            this.coreClone.rotation.y = this.core.rotation.y;
          }
 
          if (this.paused || this.gameEnded) return;

@@ -17,6 +17,10 @@ var PieceFactory = (function() {
          cubeGroup.copy(model);
 
          cubeGroup.model = model;
+
+         cubeGroup.clones.forEach(function(clone) {
+            clone.model = model;
+         })
       });
 
       return model;

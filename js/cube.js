@@ -4,7 +4,7 @@ var Cube = (function() {
    var texture = new THREE.TextureLoader().load('textures/square-outline-textured.png');
        texture.minFilter = THREE.NearestMipMapLinearFilter;
        texture.maxFilter = THREE.NearestMipMapLinearFilter;
-   var material = new THREE.MeshLambertMaterial({ color: 0xffffff, map: texture });
+   var material = new THREE.MeshBasicMaterial({ color: 0xffffff, map: texture });
 
    var Cube = function(position, mat) {
       THREE.Mesh.call(this, geometry, mat || material);
@@ -20,17 +20,29 @@ var Cube = (function() {
 
       color = new THREE.Color(color || 0xffffff);
       this.materialCache = {};
-      this.material = new THREE.MeshLambertMaterial({ color: color, map: texture });
+      this.material = new THREE.MeshBasicMaterial({ color: color, map: texture });
       this.materialCache[color.getHexString()] = this.material;
 
       this.min = new THREE.Vector3(0, 0, 0);
       this.max = new THREE.Vector3(0, 0, 0);
       this.cubes = [];
 
+      this.clones = [];
+
       this.CubeObj = Cube;
    };
 
    Cube.Group.prototype = Object.create(THREE.Object3D.prototype);
+
+   Cube.Group.prototype.getClone = function() {
+      var newGroup = new Cube.Group();
+
+      newGroup.material = this.material;
+
+      this.clones.push(newGroup);
+
+      return newGroup;
+   };
 
    Cube.Group.prototype.setColor = function(color) {
       this.material = this.material.clone();
@@ -43,6 +55,9 @@ var Cube = (function() {
       self.clear();
 
       self.setColor(other.material.color);
+      self.clones.forEach(function(clone) {
+         clone.setColor(other.material.color);
+      });
       other.children.forEach(function(cube) {
          // Give me a cube there
          self.addCube(cube.position.x, cube.position.y, cube.position.z);
@@ -50,6 +65,10 @@ var Cube = (function() {
    };
 
    Cube.Group.prototype.rotate = function(axis, degree) {
+      this.clones.forEach(function(clone) {
+         clone.rotate(axis, degree);
+      })
+
       // Reset the map (INEFFICIENT)
       this.min = new THREE.Vector3(3, 3, 3);
       this.max = new THREE.Vector3(0, 0, 0);
@@ -119,7 +138,7 @@ var Cube = (function() {
             }
 
             if (!material) {
-               material = new THREE.MeshLambertMaterial({ map: texture, transparent: true });
+               material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
                material.color = color;
                // console.log('adding color', color);
 
@@ -135,6 +154,10 @@ var Cube = (function() {
    };
 
    Cube.Group.prototype.addCube = function(x, y, z, color) {
+      this.clones.forEach(function(clone) {
+         clone.addCube(x, y, z, color);
+      });
+
       var cube = this.convertToCube(x, y, z, color);
 
       this.add(cube);
@@ -145,6 +168,10 @@ var Cube = (function() {
    };
 
    Cube.Group.prototype.clear = function() {
+      this.clones.forEach(function(clone) {
+         clone.clear();
+      });
+
       while (this.children.length) {
          this.remove(this.children[0]);
       }
@@ -229,14 +256,28 @@ var Cube = (function() {
 
       this.rows = [];
 
-      this.squish_material = new THREE.MeshLambertMaterial({ color: 0xff4444, map: texture });
+      this.squish_material = new THREE.MeshBasicMaterial({ color: 0xff4444, map: texture });
       this.squishing = [];
       this.squish = 0;
    };
 
    Cube.LayeredGroup.prototype = Object.create(Cube.Group.prototype);
 
+   Cube.LayeredGroup.prototype.getClone = function() {
+      var newGroup = new Cube.LayeredGroup();
+
+      newGroup.material = this.material;
+
+      this.clones.push(newGroup);
+
+      return newGroup;
+   };
+
    Cube.LayeredGroup.prototype.add = function(object) {
+      this.clones.forEach(function(clone) {
+         clone.add(object.clone());
+      });
+
       var y = Math.round(object.position.y);
 
       if (!this.rows[y]) {
@@ -254,6 +295,10 @@ var Cube = (function() {
    };
 
    Cube.LayeredGroup.prototype.update = function(dt) {
+      this.clones.forEach(function(clone) {
+         clone.update(dt);
+      });
+
       var squishSpeed = 5;
 
       for (var y in this.rows) {
@@ -288,6 +333,10 @@ var Cube = (function() {
    };
 
    Cube.LayeredGroup.prototype.removeRow = function(y) {
+      this.clones.forEach(function(clone) {
+         clone.removeRow(y);
+      });
+
       y -= this.position.y;
 
       this.cubes.splice(y, 1);

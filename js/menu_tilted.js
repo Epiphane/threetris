@@ -30,7 +30,7 @@ Menu = (function() {
          this.menuItemSpacing = 100;
 
          // Create the objects
-         this.title = new ThreeImage('title_rendered.png');
+         this.title = new ThreeImage('title_tilted.png');
          this.title.position.y = this.titleStart;
          this.scene.add(this.title);
 
@@ -38,7 +38,7 @@ Menu = (function() {
          this.press_space.position.y = -120;
          this.scene.add(this.press_space);
 
-         this.menu_items = ['classic', 'how_to_play', 'high_scores'];
+         this.menu_items = ['classic', 'infinite', 'controls'];
 
          this.menu_objects = this.base_menu_objects = this.menu_items.map(function(string, index) {
             var menu_object = new ThreeImage(string + '.png');//SpecialCube.Group.FromString(string);
@@ -59,7 +59,7 @@ Menu = (function() {
             menu_object.update(0);
 
             menu_object.position.copy(self.base_menu_objects[0].position);
-            menu_object.position.x -= 80;
+            menu_object.position.x -= 30;
             menu_object.material.opacity = 0;
 
             return menu_object;
@@ -71,7 +71,7 @@ Menu = (function() {
          this.selector.addCube(0, 0, 0);
          this.selector.material.color = new THREE.Color(1, 0, 1);
          this.selector.scale.setScalar(25);
-         this.selector.position.x = -160;
+         this.selector.position.x = -120;
          this.selector.position.y = -6;
          this.scene.add(this.selector);
 
@@ -139,12 +139,12 @@ Menu = (function() {
 
                   index ++;
                   var moveTime = 0.125;
-                  object.moveTo(rootObj.position.clone().add(new THREE.Vector3(-30, -index * 60 - 20, 0)), index * moveTime);
+                  object.moveTo(rootObj.position.clone().add(new THREE.Vector3(0, -index * 60 - 20, 0)), index * moveTime);
                   object.fadeTo(1, index * moveTime);
                });
 
                this.menuItemSpacing = 60;
-               this.selector.position.x += 100;
+               this.selector.position.x += 70;
                this.selector_cube.material.color.setRGB(0.5, 1, 0);
 
                this.state = 'submenu';
@@ -152,6 +152,11 @@ Menu = (function() {
             else {
                // Infinite
                if (this.selection === 1) {
+                  this.nextState = new InfiniteGame(GAME_WIDTH, GAME_HEIGHT);
+                  this.showSelected(this.menu_objects[this.selection]);
+               }
+               // Controls
+               else {
                   this.menu_objects.forEach(function(object, index) {
                      object.lerpDest.opacity = 1;
                      object.material.opacity = 1;
@@ -159,12 +164,6 @@ Menu = (function() {
 
                   this.selection = 0;
                   Juicy.Game.setState(this.ControlsState);
-               }
-               // Controls
-               else {
-                  this.nextState = new InfiniteGame(GAME_WIDTH, GAME_HEIGHT);
-                  this.showSelected(this.menu_objects[this.selection]);
-                  __em.startGame('infinite');
                }
             }
          }
@@ -174,7 +173,7 @@ Menu = (function() {
                this.state = 'menu';
                
                this.menuItemSpacing = 100;
-               this.selector.position.x -= 100;
+               this.selector.position.x -= 70;
                this.selector_cube.material.color.setRGB(1, 0, 1);
                this.selection = 0;
 
@@ -198,14 +197,10 @@ Menu = (function() {
                // Intro
                if (this.selection === 0) {
                   this.nextState = new IntroGame(GAME_WIDTH, GAME_HEIGHT);
-
-                  __em.startGame('intro');
                }
                // Skip
                else {
                   this.nextState = new ClassicGame(GAME_WIDTH, GAME_HEIGHT);
-
-                  __em.startGame('classic');
                }
                this.showSelected(this.sub_classic_objects[this.selection]);
             }

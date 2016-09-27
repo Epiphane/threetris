@@ -6,7 +6,7 @@ $(document).ready(function() {
    var renderer = new THREE.WebGLRenderer();
    renderer.setPixelRatio(window.devicePixelRatio);
    renderer.setSize(GAME_WIDTH, GAME_HEIGHT);
-   document.body.appendChild(renderer.domElement);
+   $('#game').append(renderer.domElement);
 
    Juicy.Game.init(renderer, GAME_WIDTH, GAME_HEIGHT, {
       LEFT: 37,
@@ -16,6 +16,12 @@ $(document).ready(function() {
       SPACE: 32,
       ESC: 27,
       SHIFT: 16,
+      ENTER: 13,
+
+      I: 73,
+      J: 74,
+      K: 75,
+      L: 76,
 
       W: 87,
       A: 65,
@@ -33,9 +39,7 @@ $(document).ready(function() {
       document.body.appendChild(fpsOutput);
    }
 
-   $.post('http://thomassteinke.com/__em.php', {
-      view: true
-   });
+   __em.init();
 
    // Load sounds
    Juicy.Sound.load('select', './audio/select2.mp3', false);
@@ -50,7 +54,7 @@ $(document).ready(function() {
    Juicy.Sound.load('combo_4', './audio/combo_4.mp3', false, 2);
    Juicy.Sound.load('levelup', './audio/Coin01.mp3', false);
 
-   Juicy.Game.setState(new Menu(GAME_WIDTH, GAME_HEIGHT)).run();
+   Juicy.Game.setState(new Menu(GAME_WIDTH, GAME_HEIGHT, 'classic', 250, {}, {"seed": 0})).run();
 
    $('#report-bug').click(function() {
       Juicy.Game.setState(new ReportBug(GAME_WIDTH, GAME_HEIGHT, Juicy.Game.getState()));

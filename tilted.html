@@ -2,13 +2,10 @@
 <html>
    <head>
       <meta charset=utf-8>
-      <title>Threetris</title>
+      <title>TILTris</title>
       <link rel="icon" type="image/png" href="favicon.ico">
       <style>
-         body { 
-            margin: 0;
-            background: black;
-         }
+         body { margin: 0; }
          canvas { width: 100%; height: 100% }
          #report-bug {
             background: black;
@@ -18,34 +15,23 @@
             padding: 5px;
             border-radius: 0 0 5px 0;
          }
-
-         .container {
-            width: 694px;
-            margin: 0 auto;
-            background: #666;
-         }
-
-         .container img {
-            text-align: center;
-            margin: 0 auto;
-         }
       </style>
    </head>
    <body>
-      <div id="game" style="position: relative;">
-         <button id="report-bug">
-            <img src="textures/bug.png" />
-         </button>
+      <div class="container">
+         <img src="textures/title.png" />
+
+         <div id="game"></div>
       </div>
-      
+
       <script src="jquery-3.1.0.min.js"></script>
       <script src="lib/perlin.js"></script>
       <script src="lib/juicy.three.js"></script>
       <script src="lib/three.js"></script>
       <script src="lib/GPUParticleSystem.js"></script>
       <script src="lib/chance.min.js"></script>
-      <script src="js/__em.js"></script>
       <script src="js/three_image.js"></script>
+      <script src="js/__em.js"></script>
       <script src="js/number.js"></script>
       <script src="js/cube.js"></script>
       <script src="js/tetromino.js"></script>
@@ -54,18 +40,19 @@
       <script src="js/piece_factory.js"></script>
       <script src="js/screen_2d.js"></script>
       <script src="js/controls.js"></script>
-      <script src="js/menu.js"></script>
+      <script src="js/menu_tilted.js"></script>
       <script src="js/Score.js"></script>
-      <script src="js/end_game_score.js"></script>
-      <script src="js/game.js"></script>
+      <script src="js/game_tilted.js"></script>
       <script src="js/game_active.js"></script>
       <script src="js/game_intro.js"></script>
       <script src="js/game_classic.js"></script>
       <script src="js/game_infinite.js"></script>
       <script src="js/game_spectate.js"></script>
       <script src="js/main.js"></script>
-      <script src="js/high_scores.js"></script>
 
       <script src="js/report_bug.js"></script>
+      <button id="report-bug">
+         <img src="textures/bug.png" />
+      </button>
    </body>
 </html>

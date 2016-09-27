@@ -1,7 +1,7 @@
 /* 
  * Score screen
  */
-Score = (function() {
+EndGameScore = (function() {
    return Screen2D.extend({
       constructor: function(width, height, game_type, score, stats, replay) {
          Screen2D.apply(this, arguments);
