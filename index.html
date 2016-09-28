@@ -9,14 +9,29 @@
             margin: 0;
             background: black;
          }
-         canvas { width: 100%; height: 100% }
+         canvas { width: 100%; height: 100%; margin: 0 auto; }
+         #game {
+            text-align: center;
+         }
+
          #report-bug {
             background: black;
             position: absolute;
             top: 0;
+            left: 0;
             border: 2px solid white;
             padding: 5px;
             border-radius: 0 0 5px 0;
+         }
+
+         #fullscreen {
+            background: black;
+            position: absolute;
+            top: 0;
+            right: 0;
+            border: 2px solid white;
+            padding: 5px;
+            border-radius: 0 0 0 5px;
          }
 
          .container {
@@ -35,6 +50,10 @@
       <div id="game" style="position: relative;">
          <button id="report-bug">
             <img src="textures/bug.png" />
+         </button>
+
+         <button id="fullscreen">
+            <img src="textures/full_screen.png" />
          </button>
       </div>
       

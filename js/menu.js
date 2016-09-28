@@ -29,6 +29,10 @@ Menu = (function() {
          this.titleDest = 170;
          this.menuItemSpacing = 100;
 
+         this.PSA = new ThreeImage('PSA.png');
+         this.PSA.position.y = -300;
+         this.scene.add(this.PSA);
+
          // Create the objects
          this.title = new ThreeImage('title_rendered.png');
          this.title.position.y = this.titleStart;
@@ -162,9 +166,8 @@ Menu = (function() {
                }
                // Controls
                else {
-                  this.nextState = new InfiniteGame(GAME_WIDTH, GAME_HEIGHT);
+                  this.nextState = new Score(GAME_WIDTH, GAME_HEIGHT, 'classic');
                   this.showSelected(this.menu_objects[this.selection]);
-                  __em.startGame('infinite');
                }
             }
          }

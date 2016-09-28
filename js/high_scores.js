@@ -7,6 +7,7 @@ HighScores = (function() {
    });
 
    HighScores.getPlaceOnLeaderboard = function(score) {
+      console.log(currentScores);
       for (var i = 0; i < currentScores.length; i ++) {
          if (score > currentScores[i].score) {
             return i;
@@ -15,8 +16,8 @@ HighScores = (function() {
       return currentScores.length;
    }
 
-   HighScores.get = function(game_type) {
-      return $.get('http://thomassteinke.com/threetris/__em.php?scores=' + game_type).then(function(scores) {
+   HighScores.get = function(game_type, type) {
+      return $.get('http://thomassteinke.com/threetris/__em.php?scores=' + game_type + '&type=' + type).then(function(scores) {
          currentScores = scores;
 
          return scores;

@@ -7,7 +7,7 @@ ClassicGame = (function() {
       gameType: 'classic',
 
       nextLevel: function() {
-         if (this.level === 15) {
+         if (this.level === 20) {
             // GG
             this.gameEnded = true;
 
@@ -19,7 +19,7 @@ ClassicGame = (function() {
       },
 
       reduceFallDelay: function() {
-         if (this.fallDelay > 4)
+         if (this.fallDelay > 3)
             this.fallDelay = Math.floor(this.fallDelay * 6 / 7);
       }
    });

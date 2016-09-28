@@ -1,4 +1,4 @@
-$(document).ready(function() {
+var start = function() {
    window.GAME_WIDTH = 694,
    window.GAME_HEIGHT = 694;
 
@@ -54,9 +54,35 @@ $(document).ready(function() {
    Juicy.Sound.load('combo_4', './audio/combo_4.mp3', false, 2);
    Juicy.Sound.load('levelup', './audio/Coin01.mp3', false);
 
+   // Juicy.Game.setState(new EndGameScore(GAME_WIDTH, GAME_HEIGHT, 'classic2', 262, {}, {"seed": 0})).run();
    Juicy.Game.setState(new Menu(GAME_WIDTH, GAME_HEIGHT, 'classic', 250, {}, {"seed": 0})).run();
 
    $('#report-bug').click(function() {
       Juicy.Game.setState(new ReportBug(GAME_WIDTH, GAME_HEIGHT, Juicy.Game.getState()));
+   });
+
+   return renderer.domElement;
+};
+
+$(document).ready(function() {
+   var element = start();
+
+   $('#fullscreen').click(function() {
+      if(element.requestFullscreen) {
+         element.requestFullscreen();
+      } else if(element.mozRequestFullScreen) {
+         element.mozRequestFullScreen();
+      } else if(element.webkitRequestFullscreen) {
+         element.webkitRequestFullscreen();
+      } else if(element.msRequestFullscreen) {
+         element.msRequestFullscreen();
+      }
+   });
+
+   $('#play').click(function() {
+      if (!element)
+         element = start();
+
+      $('#play').hide();
    });
 });

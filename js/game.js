@@ -116,7 +116,7 @@ Game = (function() {
          this.newThing = new Cube.Group(0xff0000);
          this.previewThing = new Cube.Group(0xff0000);
          this.previewThing.material.transparent = true;
-         this.previewThing.material.opacity = 0.25;
+         this.previewThing.material.opacity = 0.5;
 
          this.previewClone = this.previewThing.getClone();
 
